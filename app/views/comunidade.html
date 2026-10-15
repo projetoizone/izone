@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR"> <!--WCAG 3.1.1-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--WCAG 1.4.10-->
+    <title>Comunidade - iZone</title> <!--WCAG 2.4.2-->
+    <link rel="stylesheet" href="../../public/css/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a> <!--WCAG 2.4.1-->
+
+    <header class="site-header">
+      <div class="header-bar">
+        <a class="logo" href="home.html"><span class="logo-dot">i</span>Zone</a>
+
+        <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
+          <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
+          <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
+          <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
+          <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+          <button type="button" class="a11y-btn" data-action="toggle-tts" aria-pressed="false" aria-label="Ler conteúdo da página em voz alta">🔊 Ouvir página</button>
+        </div>
+
+        <form class="search-field" role="search" action="busca.html" method="get">
+          <label class="sr-only" for="busca">Pesquisar cursos, tópicos e tutoriais</label>
+          <input type="search" id="busca" name="q" placeholder="Pesquisar cursos, tópicos e tutoriais">
+        </form>
+      </div>
+
+      <nav class="main-nav" aria-label="Principal">
+        <div class="container">
+          <ul>
+            <li><a href="home.html">INÍCIO</a></li>
+            <li><a href="cursos.html">CURSOS</a></li>
+            <li><a href="tutoriais.html">TUTORIAIS</a></li>
+            <li><a href="comunidade.html" aria-current="page">COMUNIDADE</a></li>
+            <li><a href="meuperfil.html">MEU PERFIL</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
+    <main id="conteudo-principal">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+        <h2 class="page-title" style="margin-bottom:0;">COMUNIDADE IZONE: FÓRUM DE DISCUSSÃO</h2>
+        <button type="button" class="btn btn-primary" data-demo-message="Tópico criado (simulação, back-end ainda não conectado).">Criar novo tópico</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;margin-top:1rem;">
+        <div class="card-grid">
+          <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+            <h3>Dúvidas Gerais</h3>
+            <p>22 tópicos ativos · 181 posts</p>
+          </a>
+          <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+            <h3>Programação Python</h3>
+            <p>27 tópicos ativos · 189 posts</p>
+          </a>
+          <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+            <h3>História e Cultura</h3>
+            <p>12 tópicos ativos · 287 posts</p>
+          </a>
+          <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+            <h3>Dicas de Acessibilidade</h3>
+            <p>13 tópicos ativos · 125 posts</p>
+          </a>
+          <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+            <h3>Projetos de Alunos</h3>
+            <p>13 tópicos ativos · 63 posts</p>
+          </a>
+        </div>
+
+        <aside class="card">
+          <h3 style="margin-top:0;">Tópicos mais populares</h3>
+          <ol>
+            <li><a href="topico.html">Dúvidas Gerais</a></li>
+            <li><a href="topico.html">Programação Python</a></li>
+            <li><a href="topico.html">História e Cultura</a></li>
+            <li><a href="topico.html">Dicas de Acessibilidade</a></li>
+            <li><a href="topico.html">Projetos de Alunos</a></li>
+          </ol>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <nav aria-label="Rodapé">
+        <ul>
+          <li><a href="sobrenos.html">SOBRE NÓS</a></li>
+          <li><a href="acessibilidade.html">ACESSIBILIDADE</a></li>
+          <li><a href="contato.html">CONTATO</a></li>
+          <li><a href="termosdeuso.html">TERMOS DE USO</a></li>
+          <li><a href="politica_privacidade.html">POLÍTICA DE PRIVACIDADE</a></li>
+        </ul>
+      </nav>
+      <p>WCAG 2.2 AA</p>
+      <p>© 2026 iZone. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="../../public/js/accessibility.js"></script>
+    <script src="../../public/js/demo-interactions.js"></script>
+</body>
+</html>

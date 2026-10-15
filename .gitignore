@@ -1,0 +1,20 @@
+# Python
+*.pyc
+__pycache__
+.venv/
+*.egg-info
+
+# Tests
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDEs
+.vscode/
+*.idea
+
+# SQL
+*.db
+
+# MacOS
+.DS_Store
