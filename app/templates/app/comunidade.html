@@ -1,0 +1,62 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Comunidade{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+    <h2 class="page-title" style="margin-bottom:0;">COMUNIDADE IZONE: FÓRUM DE DISCUSSÃO</h2>
+    
+    <button type="button" class="btn btn-primary" data-demo-message="Tópico criado (simulação, back-end ainda não conectado).">Criar novo tópico</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;margin-top:1rem;">
+    
+    <div class="card-grid">
+      <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+        <h3>Dúvidas Gerais</h3>
+        
+        <p>22 tópicos ativos · 181 posts</p>
+      </a>
+      
+      <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+        <h3>Programação Python</h3>
+        
+        <p>27 tópicos ativos · 189 posts</p>
+      </a>
+      
+      <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+        <h3>História e Cultura</h3>
+        
+        <p>12 tópicos ativos · 287 posts</p>
+      </a>
+      
+      <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+        <h3>Dicas de Acessibilidade</h3>
+        
+        <p>13 tópicos ativos · 125 posts</p>
+      </a>
+      
+      <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
+        <h3>Projetos de Alunos</h3>
+        
+        <p>13 tópicos ativos · 63 posts</p>
+      </a>
+    </div>
+
+    <aside class="card">
+      <h3 style="margin-top:0;">Tópicos mais populares</h3>
+      
+      <ol>
+        <li><a href="topico.html">Dúvidas Gerais</a></li>
+        <li><a href="topico.html">Programação Python</a></li>
+        <li><a href="topico.html">História e Cultura</a></li>
+        <li><a href="topico.html">Dicas de Acessibilidade</a></li>
+        <li><a href="topico.html">Projetos de Alunos</a></li>
+      </ol>
+    </aside>
+  
+  </div>
+</main>
+{% endblock %}

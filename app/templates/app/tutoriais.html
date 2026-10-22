@@ -1,0 +1,65 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Tutoriais{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h2 class="page-title">TUTORIAIS RÁPIDOS E FOCADOS</h2>
+
+  <form style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+    <div class="field" style="margin-bottom:0;min-width:180px;">
+      <label for="filtro-tema">Tema</label>
+      <select id="filtro-tema" name="tema" style="width:100%;min-height:44px;background:var(--bg-input);color:var(--text);border:2px solid var(--border);border-radius:8px;">
+        <option value="">Todos</option>
+        <option value="leitor-tela">Leitor de tela</option>
+        <option value="navegacao">Navegação</option>
+        <option value="idiomas">Idiomas</option>
+      </select>
+    </div>
+    
+    <div class="field" style="margin-bottom:0;min-width:180px;">
+      <label for="filtro-dificuldade">Dificuldade</label>
+      <select id="filtro-dificuldade" name="dificuldade" style="width:100%;min-height:44px;background:var(--bg-input);color:var(--text);border:2px solid var(--border);border-radius:8px;">
+        <option value="">Todas</option>
+        <option value="iniciante">Iniciante</option>
+        <option value="intermediario">Intermediário</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>Usar o leitor de tela</h3>
+      
+      <p>Veja como ativar e navegar usando o leitor de tela do seu sistema.</p>
+      <p class="field-hint">⏱ 2 min</p>
+      <a class="btn btn-primary btn-block" href="tutorial-detalhe.html">Assistir agora</a>
+    </article>
+    
+    <article class="card">
+      <h3>Teclas de atalho essenciais</h3>
+      
+      <p>Navegue pelo iZone inteiro sem usar o mouse.</p>
+      <p class="field-hint">⏱ 2 min</p>
+      <a class="btn btn-primary btn-block" href="tutorial-detalhe.html">Assistir agora</a>
+    </article>
+    
+    <article class="card">
+      <h3>Configurações de contraste</h3>
+      
+      <p>Ajuste o contraste de cores para sua necessidade visual.</p>
+      <p class="field-hint">⏱ 3 min</p>
+      <a class="btn btn-primary btn-block" href="tutorial-detalhe.html">Assistir agora</a>
+    </article>
+    
+    <article class="card">
+      <h3>Navegação por voz</h3>
+      
+      <p>Comandos de voz para navegar e buscar conteúdos.</p>
+      <p class="field-hint">⏱ 5 min</p>
+      <a class="btn btn-primary btn-block" href="tutorial-detalhe.html">Assistir agora</a>
+    </article>
+  </div>
+</main>
+{% endblock %}

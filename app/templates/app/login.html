@@ -1,0 +1,91 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Entrar ou criar conta{% endblock %}
+
+{% block content %}
+<a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a> <!--WCAG 2.4.1-->
+
+<header class="site-header">
+  <div class="header-bar">
+    <a class="logo" href="home.html"><span class="logo-dot">i</span>Zone</a>
+
+    <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
+      <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
+      <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
+      <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
+      <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+      <button type="button" class="a11y-btn" data-action="toggle-tts" aria-pressed="false" aria-label="Ler conteúdo da página em voz alta">🔊 Ouvir página</button>
+    </div>
+
+    <form class="search-field" role="search" action="busca.html" method="get">
+      <label class="sr-only" for="busca">Pesquisar cursos, tópicos e tutoriais</label>
+      <input type="search" id="busca" name="q" placeholder="Pesquisar cursos, tópicos e tutoriais">
+    </form>
+  </div>
+
+  <nav class="main-nav" aria-label="Principal">
+    <div class="container">
+      <ul>
+        <li><a href="home.html">INÍCIO</a></li>
+        <li><a href="cursos.html">CURSOS</a></li>
+        <li><a href="tutoriais.html">TUTORIAIS</a></li>
+        <li><a href="comunidade.html">COMUNIDADE</a></li>
+        <li><a href="meuperfil.html">MEU PERFIL</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<div id="a11y-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
+<main id="conteudo-principal">
+  <h2 class="sr-only">Entrar ou criar uma conta no iZone</h2>
+  <div class="auth-grid">
+    <section class="card" aria-labelledby="login-heading" id="login-form">
+      <h3 id="login-heading">Login</h3>
+      <form method="post" action="/login" data-demo-message="Login simulado (back-end ainda não conectado).">
+        <div class="field">
+          <label for="login-email">E-mail ou usuário</label>
+          <input type="text" id="login-email" name="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-senha">Senha</label>
+          <input type="password" id="login-senha" name="senha" autocomplete="current-password" required>
+          <p class="field-hint"><a href="recuperar-senha.html">Esqueceu a senha?</a></p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        <p class="field-hint">Ainda não tem uma conta? <a href="#cadastro-form">Cadastre-se</a>.</p>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="cadastro-heading" id="cadastro-form">
+      <h3 id="cadastro-heading">Criar uma conta</h3>
+      <form method="post" action="/cadastro" data-demo-message="Conta criada (simulação, back-end ainda não conectado).">
+        <div class="field">
+          <label for="cad-nome">Nome completo</label>
+          <input type="text" id="cad-nome" name="nome" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="cad-email">E-mail</label>
+          <input type="email" id="cad-email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="cad-senha">Senha</label>
+          <input type="password" id="cad-senha" name="senha" autocomplete="new-password" required>
+        </div>
+        <div class="field">
+          <label for="cad-senha2">Confirmar senha</label>
+          <input type="password" id="cad-senha2" name="senha2" autocomplete="new-password" required>
+        </div>
+        <div class="field checkbox-field">
+          <input type="checkbox" id="cad-termos" name="termos" required>
+          <label for="cad-termos">Eu aceito os <a href="termosdeuso.html">Termos e Condições</a></label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Criar minha conta</button>
+        <p class="field-hint">Já tem uma conta? <a href="#login-form">Entre acima</a>.</p>
+      </form>
+    </section>
+  </div>
+</main>
+{% endblock %}
