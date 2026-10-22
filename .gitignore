@@ -15,6 +15,7 @@ htmlcov/
 
 # SQL
 *.db
+db.*
 
 # MacOS
 .DS_Store

@@ -17,8 +17,9 @@ Descreva a História de Usuário. Use uma lista como a seguir:
 - Quero: <meta ou objetivo>
 - Para: <motivo>
 -->
-- Como:  
-- Quero:
+
+- Como: 
+- Quero: 
 - Para: 
 
 ## Critérios de Aceitação
@@ -31,6 +32,7 @@ Descreva os critérios que devem ser alcançados para que a funcionalidade seja 
 - [ ] <critério 3>
 ...
 -->
+
 - [ ] 
 - [ ] 
-- [ ]
+- [ ] 

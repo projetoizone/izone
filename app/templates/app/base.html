@@ -1,0 +1,79 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR"> <!--WCAG 3.1.1-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--WCAG 1.4.10-->
+    
+    <title>{% block title %}iZone{% endblock %} - iZone</title> <!--WCAG 2.4.2-->
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a> <!--WCAG 2.4.1-->
+
+    <header class="site-header">
+    <div class="header-bar">
+        <a class="logo" href="home.html"><span class="logo-dot">i</span>Zone</a>
+
+        <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
+            <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
+            <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
+            <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
+            <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+            <button type="button" class="a11y-btn" data-action="toggle-tts" aria-pressed="false" aria-label="Ler conteúdo da página em voz alta">🔊 Ouvir página</button>
+        </div>
+
+        <form class="search-field" role="search" action="busca.html" method="get">
+            <label class="sr-only" for="busca">Pesquisar cursos, tópicos e tutoriais</label>
+            <input type="search" id="busca" name="q" placeholder="Pesquisar cursos, tópicos e tutoriais">
+        </form>
+    </div>
+
+    <nav class="main-nav" aria-label="Principal">
+        <div class="container">
+        <ul>
+            {% url 'app:home' as home_url %}
+            <li><a href="{{ home_url }}" {% if request.path == home_url %}aria-current="page"{% endif %}>INÍCIO</a></li>
+            
+            {% url 'app:cursos' as cursos_url %}
+            <li><a href="{{ cursos_url }}" {% if request.path == cursos_url %}aria-current="page"{% endif %}>CURSOS</a></li>
+            
+            {% url 'app:tutoriais' as tutoriais_url %}
+            <li><a href="{{ tutoriais_url }}" {% if request.path == tutoriais_url %}aria-current="page"{% endif %}>TUTORIAIS</a></li>
+            
+            {% url 'app:comunidade' as comunidade_url %}
+            <li><a href="{{ comunidade_url }}" {% if request.path == comunidade_url %}aria-current="page"{% endif %}>COMUNIDADE</a></li>
+            
+            {% url 'app:meuperfil' as meuperfil_url %}
+            <li><a href="{{ meuperfil_url }}" {% if request.path == meuperfil_url %}aria-current="page"{% endif %}>MEU PERFIL</a></li>
+        </ul>
+        </div>
+    </nav>
+    </header>
+
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
+    {% block content %}{% endblock %}
+    
+    <footer class="site-footer">
+        <nav aria-label="Rodapé">
+        <ul>
+            <li><a href="sobrenos.html">SOBRE NÓS</a></li>
+            <li><a href="acessibilidade.html">ACESSIBILIDADE</a></li>
+            <li><a href="contato.html">CONTATO</a></li>
+            <li><a href="termosdeuso.html">TERMOS DE USO</a></li>
+            <li><a href="politica_privacidade.html">POLÍTICA DE PRIVACIDADE</a></li>
+        </ul>
+      </nav>
+      <p>WCAG 2.2 AA</p>
+      <p>© 2026 iZone. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="{% static 'js/accessibility.js' %}"></script>
+    <script src="{% static 'js/demo-interactions.js' %}"></script>
+    {% block js %}{% endblock %}
+</body>
+</html>

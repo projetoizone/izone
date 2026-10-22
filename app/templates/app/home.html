@@ -1,0 +1,35 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Início{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h2 class="page-title">BEM-VINDO AO IZONE</h2>
+  <p class="lede">SUA PLATAFORMA DE APRENDIZADO ACESSÍVEL E INCLUSIVA.<br>EXPLORE NOSSO CONTEÚDO ADAPTADO PARA TODOS.</p>
+
+  <h3>Cursos em destaque</h3>
+  <div class="card-grid">
+    <article class="card">
+      <h4>Introdução à Programação</h4>
+      
+      <p>Aprenda lógica e linguagens como Python de forma acessível.</p>
+      <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+    </article>
+    
+    <article class="card">
+      <h4>História do Brasil</h4>
+      
+      <p>Descubra a história do nosso país com materiais adaptados.</p>
+      <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+    </article>
+    
+    <article class="card">
+      <h4>Geografia Global</h4>
+      
+      <p>Explore o mundo e suas culturas através de recursos visuais assistidos.</p>
+      <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+    </article>
+  </div>
+</main>
+{% endblock %}

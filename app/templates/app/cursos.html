@@ -1,0 +1,79 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Cursos{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h2 class="page-title">EXPLORE TODOS OS NOSSOS CURSOS</h2>
+  
+  <div style="display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:1.5rem;align-items:start;">
+    
+    <form class="card" aria-label="Filtros de cursos" data-demo-message="Filtros aplicados (simulação, back-end ainda não conectado).">
+      <fieldset style="border:none;padding:0;margin:0 0 1.25rem;">
+        <legend style="font-weight:800;margin-bottom:0.5rem;">Categoria</legend>
+        
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="checkbox" id="cat-ciencia" name="categoria" value="ciencia-dados"><label for="cat-ciencia">Ciência de Dados</label></div>
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="checkbox" id="cat-lit" name="categoria" value="literatura"><label for="cat-lit">Literatura Portuguesa</label></div>
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="checkbox" id="cat-mat" name="categoria" value="matematica"><label for="cat-mat">Matemática Básica</label></div>
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="checkbox" id="cat-arte" name="categoria" value="arte"><label for="cat-arte">Arte e Acessibilidade</label></div>
+      </fieldset>
+      
+      <fieldset style="border:none;padding:0;margin:0;">
+        <legend style="font-weight:800;margin-bottom:0.5rem;">Dificuldade</legend>
+        
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="radio" id="dif-facil" name="dificuldade" value="facil"><label for="dif-facil">Fácil</label></div>
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="radio" id="dif-med" name="dificuldade" value="medio"><label for="dif-med">Médio</label></div>
+        <div class="checkbox-field" style="margin-bottom:0.5rem;"><input type="radio" id="dif-dificil" name="dificuldade" value="dificil"><label for="dif-dificil">Difícil</label></div>
+      </fieldset>
+      
+      <button type="submit" class="btn btn-outline btn-block" style="margin-top:1rem;">Aplicar filtros</button>
+    </form>
+
+    <div class="card-grid">
+      <article class="card">
+        <h3>Ciência de Dados</h3>
+        
+        <p>Aprenda lógica e linguagens para análise de dados de forma acessível.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+      
+      <article class="card">
+        <h3>Literatura Portuguesa</h3>
+        
+        <p>Textos e autores da literatura em formatos adaptados.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+      
+      <article class="card">
+        <h3>Matemática Básica</h3>
+        
+        <p>Conceitos fundamentais com apoio visual e sonoro.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+      
+      <article class="card">
+        <h3>Arte e Acessibilidade</h3>
+        
+        <p>Como a arte se conecta com recursos assistivos e inclusão.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+      
+      <article class="card">
+        <h3>Cursos de Idiomas</h3>
+        
+        <p>Explore a troca de idiomas para aprender novas línguas.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+      
+      <article class="card">
+        <h3>Informática para Idosos</h3>
+        
+        <p>Primeiros passos no computador com instruções detalhadas.</p>
+        <a class="btn btn-primary btn-block" href="curso-detalhe.html">Acessar curso</a>
+      </article>
+    </div>
+  
+  </div>
+</main>
+{% endblock %}

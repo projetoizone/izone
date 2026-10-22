@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR"> <!--WCAG 3.1.1-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--WCAG 1.4.10-->
+    <title>Introdução à Programação - iZone</title> <!--WCAG 2.4.2-->
+    <link rel="stylesheet" href="../public/css/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a> <!--WCAG 2.4.1-->
+
+    <header class="site-header">
+      <div class="header-bar">
+        <a class="logo" href="home.html"><span class="logo-dot">i</span>Zone</a>
+
+        <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
+          <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
+          <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
+          <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
+          <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+          <button type="button" class="a11y-btn" data-action="toggle-tts" aria-pressed="false" aria-label="Ler conteúdo da página em voz alta">🔊 Ouvir página</button>
+        </div>
+
+        <form class="search-field" role="search" action="busca.html" method="get">
+          <label class="sr-only" for="busca">Pesquisar cursos, tópicos e tutoriais</label>
+          <input type="search" id="busca" name="q" placeholder="Pesquisar cursos, tópicos e tutoriais">
+        </form>
+      </div>
+
+      <nav class="main-nav" aria-label="Principal">
+        <div class="container">
+          <ul>
+            <li><a href="home.html">INÍCIO</a></li>
+            <li><a href="cursos.html" aria-current="page">CURSOS</a></li>
+            <li><a href="tutoriais.html">TUTORIAIS</a></li>
+            <li><a href="comunidade.html">COMUNIDADE</a></li>
+            <li><a href="meuperfil.html">MEU PERFIL</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
+    <main id="conteudo-principal">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+        <h2 class="page-title" style="margin-bottom:0;">INTRODUÇÃO À PROGRAMAÇÃO</h2>
+        <button type="button" class="btn btn-primary" data-demo-message="Inscrição confirmada (simulação, back-end ainda não conectado).">Inscrever-se no curso</button>
+      </div>
+      <p class="lede">Aprenda lógica de programação e a linguagem Python de forma acessível, com legendas, transcrição e navegação completa por teclado em todas as aulas.</p>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;margin-top:1.5rem;">
+        <div>
+          <h3>Aula 1: Instalação do ambiente</h3>
+          <video controls style="width:100%;border:2px solid var(--border);border-radius:var(--radius);background:#000;">
+            <track kind="captions" src="legendas/aula1-pt-br.vtt" srclang="pt-BR" label="Português" default>
+            Seu navegador não suporta vídeo. <a href="transcricao-aula1.html">Leia a transcrição completa</a>.
+          </video>
+          <p class="field-hint">O vídeo possui legendas em português. A transcrição completa está disponível abaixo.</p>
+
+          <h3>Estrutura do curso</h3>
+          <ol style="padding-left:0;list-style:none;">
+            <li class="card" style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+              <span>Módulo 1: Instalação</span>
+              <span aria-hidden="true">✅</span><span class="sr-only">Concluído</span>
+            </li>
+            <li class="card" style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+              <span>Módulo 2: Variáveis</span>
+              <span aria-hidden="true">✅</span><span class="sr-only">Concluído</span>
+            </li>
+            <li class="card" style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+              <span>Módulo 3: Decisão</span>
+              <span aria-hidden="true">⬜</span><span class="sr-only">Não iniciado</span>
+            </li>
+            <li class="card" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Módulo 4: Repetição</span>
+              <span aria-hidden="true">⬜</span><span class="sr-only">Não iniciado</span>
+            </li>
+          </ol>
+
+          <h3>Transcrição da aula</h3>
+          <div class="card" tabindex="0" style="max-height:220px;overflow-y:auto;">
+            <p>Olá! Nesta aula vamos instalar o ambiente de programação Python. Primeiro, acesse o site oficial do Python e baixe a versão mais recente para o seu sistema operacional. Em seguida, execute o instalador e marque a opção "Adicionar ao PATH" antes de concluir...</p>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card" style="margin-bottom:1rem;">
+            <h3 style="margin-top:0;">Estatísticas</h3>
+            <ul>
+              <li>30 alunos matriculados</li>
+              <li>31 aulas concluídas essa semana</li>
+              <li>51 cursos relacionados</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0;">Comentários</h3>
+            <p><strong>Ana:</strong> Consegui seguir todo o curso usando só o teclado, muito bom!</p>
+            <p><strong>Bruno:</strong> As legendas ajudaram demais a entender os termos técnicos.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <nav aria-label="Rodapé">
+        <ul>
+          <li><a href="sobrenos.html">SOBRE NÓS</a></li>
+          <li><a href="acessibilidade.html">ACESSIBILIDADE</a></li>
+          <li><a href="contato.html">CONTATO</a></li>
+          <li><a href="termosdeuso.html">TERMOS DE USO</a></li>
+          <li><a href="politica_privacidade.html">POLÍTICA DE PRIVACIDADE</a></li>
+        </ul>
+      </nav>
+      <p>WCAG 2.2 AA</p>
+      <p>© 2026 iZone. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="../public/js/accessibility.js"></script>
+    <script src="../public/js/demo-interactions.js"></script>
+</body>
+</html>
