@@ -14,8 +14,12 @@ type: Feature
 Descreva o recurso. O que é? Por que deveria ser feito?
 -->
 
+
+
 ## Contexto Adicional
 
 <!--
 [Opcional] Adicione qualquer outro contexto ou captura de tela sobre o recurso pedido.
 -->
+
+

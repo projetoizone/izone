@@ -14,6 +14,8 @@ type: Bug
 Descreva o bug.
 -->
 
+
+
 ## Passos para Reproduzir
 
 <!--
@@ -24,6 +26,8 @@ Descreve, passo a passo, como reproduzir o bug. Use uma lista ordenada como a se
 3. <passo 3>
 ...
 -->
+
+
 
 ## O que se Esperava
 
@@ -37,11 +41,15 @@ Descreva o comportamento esperado (comportamento correto).
 Descreva o comportamento observado (comportamento incorreto).
 -->
 
+
+
 ## Informações Adicionais
 
 <!--
 [Opcional] Adicione capturas de tela, logs e mensagens de erro.
 -->
+
+
 
 ## Ambiente
 
@@ -53,6 +61,7 @@ Adicione informações sobre o seu ambiente. Use uma lista como a seguir:
 - Versão: <versão do iZone>
 ...
 -->
+
 - OS: 
 - Navegador: 
 - Versão: 
@@ -62,3 +71,5 @@ Adicione informações sobre o seu ambiente. Use uma lista como a seguir:
 <!--
 [Opcional] Adicione potenciais causas (exp.: qual parte do código pode estar causando o problema)  e como corrigi-las.
 -->
+
+
