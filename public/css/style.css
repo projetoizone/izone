@@ -131,7 +131,8 @@ h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
   border: 2px solid var(--border); border-radius: 8px;
   font-weight: 700; font-size: 0.95rem; cursor: pointer;
 }
-.a11y-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.a11y-btn[aria-pressed="true"], .a11y-btn.is-active { background: var(--accent); color: var(--accent-ink); }
+.a11y-btn[hidden] { display: none; }
 .a11y-btn:hover { background: var(--border); color: var(--accent-ink); }
 
 .search-field { display: flex; align-items: center; min-width: 220px; flex: 1 1 260px; }
