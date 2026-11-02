@@ -85,9 +85,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ler a pagina em voz alta
+  // ler a pagina (ou o trecho selecionado) em voz alta
   if (ttsBtn && "speechSynthesis" in window) {
     let reading = false;
+    const mainEl = document.querySelector("main");
+    const pageLabel = { text: ttsBtn.textContent, aria: ttsBtn.getAttribute("aria-label") };
+    let selectedText = "";
+
+    const isFormField = (el) => !!el && (el.matches("input, textarea, select") || el.isContentEditable);
+
+    const updateTtsLabel = () => {
+      const text = selectedText ? "🔊 Ouvir trecho" : pageLabel.text;
+      if (ttsBtn.textContent === text) return;
+      ttsBtn.textContent = text;
+      ttsBtn.setAttribute("aria-label", selectedText ? "Ouvir trecho selecionado em voz alta" : pageLabel.aria);
+    };
+
+    // lembra o ultimo trecho selecionado no conteudo principal. Ao ir com o teclado
+    // ate o botao, o foco passa pelo campo de busca, que desfaz a selecao; por isso
+    // ela so e esquecida quando o usuario de fato a desfaz fora de um campo
+    document.addEventListener("selectionchange", () => {
+      const sel = window.getSelection();
+      if (mainEl && sel && !sel.isCollapsed && sel.rangeCount > 0 && sel.getRangeAt(0).intersectsNode(mainEl)) {
+        selectedText = sel.toString().trim();
+      } else if (!isFormField(document.activeElement)) {
+        selectedText = "";
+      }
+      updateTtsLabel();
+    });
+
     ttsBtn.addEventListener("click", () => {
       if (reading) {
         speechSynthesis.cancel();
@@ -96,8 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
         announce("Leitura em voz alta interrompida");
         return;
       }
-      const mainEl = document.querySelector("main");
-      const text = mainEl ? mainEl.innerText : document.body.innerText;
+      const text = selectedText || (mainEl ? mainEl.innerText : document.body.innerText);
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "pt-BR";
       utterance.onend = () => {
@@ -108,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
       speechSynthesis.speak(utterance);
       reading = true;
       ttsBtn.setAttribute("aria-pressed", "true");
-      announce("Lendo o conteúdo da página em voz alta");
+      announce(selectedText ? "Lendo o trecho selecionado" : "Lendo o conteúdo da página em voz alta");
     });
   } else if (ttsBtn) {
     ttsBtn.disabled = true;
