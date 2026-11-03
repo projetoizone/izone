@@ -85,21 +85,129 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ler a pagina (ou o trecho selecionado) em voz alta
+  // ler a pagina (ou o trecho selecionado) em voz alta, com pausar, continuar e parar
   if (ttsBtn && "speechSynthesis" in window) {
-    let reading = false;
     const mainEl = document.querySelector("main");
-    const pageLabel = { text: ttsBtn.textContent, aria: ttsBtn.getAttribute("aria-label") };
     let selectedText = "";
+    let state = "idle"; // idle | playing | paused
+    let chunks = [];
+    let index = 0;
+    let run = 0; // muda a cada cancelamento, para ignorar eventos de falas canceladas
+    let current = null; // manter a referencia evita que o Chrome descarte a fala antes do "end"
+
+    const stopBtn = document.createElement("button");
+    stopBtn.type = "button";
+    stopBtn.className = "a11y-btn";
+    stopBtn.dataset.action = "stop-tts";
+    stopBtn.hidden = true;
+    ttsBtn.removeAttribute("aria-pressed"); // o rotulo muda com o estado, entao nao e um botao de alternancia
+    ttsBtn.after(stopBtn);
+
+    // o nome acessivel e o proprio texto visivel (WCAG 2.5.3); o icone fica oculto do leitor de tela
+    const setLabel = (btn, icon, text, ariaLabel) => {
+      const key = icon + text + (ariaLabel || "");
+      if (btn.dataset.label === key) return;
+      btn.dataset.label = key;
+      const iconEl = document.createElement("span");
+      iconEl.setAttribute("aria-hidden", "true");
+      iconEl.textContent = icon;
+      btn.replaceChildren(iconEl, " " + text);
+      if (ariaLabel) btn.setAttribute("aria-label", ariaLabel);
+      else btn.removeAttribute("aria-label");
+    };
+
+    const render = () => {
+      if (state === "playing") setLabel(ttsBtn, "⏸", "Pausar leitura");
+      else if (state === "paused") setLabel(ttsBtn, "▶", "Continuar leitura");
+      else if (selectedText) setLabel(ttsBtn, "🔊", "Ouvir trecho", "Ouvir trecho selecionado");
+      else setLabel(ttsBtn, "🔊", "Ouvir página");
+      ttsBtn.classList.toggle("is-active", state !== "idle");
+      // o botao parar some quando a leitura termina; o foco volta para o botao principal
+      if (state === "idle" && document.activeElement === stopBtn) ttsBtn.focus();
+      stopBtn.hidden = state === "idle";
+    };
+
+    setLabel(stopBtn, "⏹", "Parar leitura");
+    render();
+
+    // o texto e falado frase a frase: speechSynthesis.pause()/resume() nao funcionam de forma
+    // consistente entre navegadores, entao pausar cancela a fala e continuar repete a frase atual
+    const MAX_CHUNK = 200;
+    const toChunks = (text) => text
+      .split(/\n+/)
+      .flatMap((line) => line.split(/(?<=[.!?…])\s+/))
+      .flatMap((part) => {
+        const out = [];
+        let rest = part.trim();
+        while (rest.length > MAX_CHUNK) {
+          let cut = rest.lastIndexOf(" ", MAX_CHUNK);
+          if (cut <= 0) cut = MAX_CHUNK;
+          out.push(rest.slice(0, cut));
+          rest = rest.slice(cut).trim();
+        }
+        if (rest) out.push(rest);
+        return out;
+      });
+
+    const halt = () => {
+      run++;
+      speechSynthesis.cancel();
+    };
+
+    const stop = (message) => {
+      halt();
+      state = "idle";
+      chunks = [];
+      index = 0;
+      render();
+      announce(message);
+    };
+
+    const speakCurrent = () => {
+      if (index >= chunks.length) {
+        stop("Leitura concluída");
+        return;
+      }
+      const myRun = run;
+      current = new SpeechSynthesisUtterance(chunks[index]);
+      current.lang = "pt-BR";
+      current.onend = () => {
+        if (myRun !== run) return;
+        index++;
+        speakCurrent();
+      };
+      current.onerror = () => {
+        if (myRun !== run) return;
+        stop("Não foi possível continuar a leitura");
+      };
+      speechSynthesis.speak(current);
+    };
+
+    const start = () => {
+      halt();
+      chunks = toChunks(selectedText || (mainEl ? mainEl.innerText : document.body.innerText));
+      index = 0;
+      state = "playing";
+      render();
+      announce(selectedText ? "Lendo o trecho selecionado" : "Lendo o conteúdo da página em voz alta");
+      speakCurrent();
+    };
+
+    const pause = () => {
+      halt();
+      state = "paused";
+      render();
+      announce("Leitura pausada");
+    };
+
+    const resume = () => {
+      state = "playing";
+      render();
+      announce("Leitura retomada");
+      speakCurrent();
+    };
 
     const isFormField = (el) => !!el && (el.matches("input, textarea, select") || el.isContentEditable);
-
-    const updateTtsLabel = () => {
-      const text = selectedText ? "🔊 Ouvir trecho" : pageLabel.text;
-      if (ttsBtn.textContent === text) return;
-      ttsBtn.textContent = text;
-      ttsBtn.setAttribute("aria-label", selectedText ? "Ouvir trecho selecionado em voz alta" : pageLabel.aria);
-    };
 
     // lembra o ultimo trecho selecionado no conteudo principal. Ao ir com o teclado
     // ate o botao, o foco passa pelo campo de busca, que desfaz a selecao; por isso
@@ -111,30 +219,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (!isFormField(document.activeElement)) {
         selectedText = "";
       }
-      updateTtsLabel();
+      render();
     });
 
     ttsBtn.addEventListener("click", () => {
-      if (reading) {
-        speechSynthesis.cancel();
-        reading = false;
-        ttsBtn.setAttribute("aria-pressed", "false");
-        announce("Leitura em voz alta interrompida");
-        return;
-      }
-      const text = selectedText || (mainEl ? mainEl.innerText : document.body.innerText);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "pt-BR";
-      utterance.onend = () => {
-        reading = false;
-        ttsBtn.setAttribute("aria-pressed", "false");
-      };
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
-      reading = true;
-      ttsBtn.setAttribute("aria-pressed", "true");
-      announce(selectedText ? "Lendo o trecho selecionado" : "Lendo o conteúdo da página em voz alta");
+      if (state === "playing") pause();
+      else if (state === "paused") resume();
+      else start();
     });
+    stopBtn.addEventListener("click", () => stop("Leitura interrompida"));
   } else if (ttsBtn) {
     ttsBtn.disabled = true;
     ttsBtn.title = "Leitura em voz alta não é suportada neste navegador";
