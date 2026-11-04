@@ -1,5 +1,12 @@
 {% load static %}
 
+<!-- URLs -->
+{% url 'learning:home' as home_url %}
+{% url 'learning:cursos' as cursos_url %}
+{% url 'learning:tutoriais' as tutoriais_url %}
+{% url 'learning:comunidade' as comunidade_url %}
+{% url 'learning:meuperfil' as meuperfil_url %}
+
 <!DOCTYPE html>
 <html lang="pt-BR"> <!--WCAG 3.1.1-->
 <head>
@@ -16,7 +23,7 @@
 
     <header class="site-header">
     <div class="header-bar">
-        <a class="logo" href="home.html"><span class="logo-dot">i</span>Zone</a>
+        <a class="logo" href="{{ home_url }}"><span class="logo-dot">i</span>Zone</a>
 
         <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
             <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
@@ -35,19 +42,10 @@
     <nav class="main-nav" aria-label="Principal">
         <div class="container">
         <ul>
-            {% url 'app:home' as home_url %}
             <li><a href="{{ home_url }}" {% if request.path == home_url %}aria-current="page"{% endif %}>INÍCIO</a></li>
-            
-            {% url 'app:cursos' as cursos_url %}
-            <li><a href="{{ cursos_url }}" {% if request.path == cursos_url %}aria-current="page"{% endif %}>CURSOS</a></li>
-            
-            {% url 'app:tutoriais' as tutoriais_url %}
+            <li><a href="{{ cursos_url }}" {% if request.path == cursos_url %}aria-current="page"{% endif %}>CURSOS</a></li>            
             <li><a href="{{ tutoriais_url }}" {% if request.path == tutoriais_url %}aria-current="page"{% endif %}>TUTORIAIS</a></li>
-            
-            {% url 'app:comunidade' as comunidade_url %}
             <li><a href="{{ comunidade_url }}" {% if request.path == comunidade_url %}aria-current="page"{% endif %}>COMUNIDADE</a></li>
-            
-            {% url 'app:meuperfil' as meuperfil_url %}
             <li><a href="{{ meuperfil_url }}" {% if request.path == meuperfil_url %}aria-current="page"{% endif %}>MEU PERFIL</a></li>
         </ul>
         </div>

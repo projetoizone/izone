@@ -9,20 +9,20 @@ from django.http import HttpResponse
 
 
 def home(request) -> HttpResponse:
-    return render(request, "app/home.html", {})
+    return render(request, "learning/home.html", {})
 
 
 def cursos(request) -> HttpResponse:
-    return render(request, "app/cursos.html", {})
+    return render(request, "learning/cursos.html", {})
 
 
 def tutoriais(request) -> HttpResponse:
-    return render(request, "app/tutoriais.html", {})
+    return render(request, "learning/tutoriais.html", {})
 
 
 def comunidade(request) -> HttpResponse:
-    return render(request, "app/comunidade.html", {})
+    return render(request, "learning/comunidade.html", {})
 
 
 def meuperfil(request) -> HttpResponse:
-    return render(request, "app/meuperfil.html", {})
+    return render(request, "learning/meuperfil.html", {})
