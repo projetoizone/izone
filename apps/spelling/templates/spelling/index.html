@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoletraBraille</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main class="game">
+    <header>
+      <h1>Soletrando</h1>
+      <p>Aprenda palavras e descubra o sistema Braille.</p>
+    </header>
+
+    <section aria-labelledby="round-title">
+      <h2 id="round-title">Desafio de soletração</h2>
+
+      <p id="instructions">
+        Ouça a palavra e digite sua grafia.
+      </p>
+
+      <button id="hear-word" type="button">
+        Ouvir palavra novamente
+      </button>
+
+
+      <label for="voice-select">Voz do jogo:</label>
+      <select id="voice-select"></select>
+      <button type="button" id="test-voice">
+      Testar voz
+      </button>
+
+
+      <form id="answer-form">
+        <label for="answer">Sua resposta</label>
+        <input
+          id="answer"
+          name="answer"
+          type="text"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          aria-describedby="instructions feedback"
+          required
+        >
+
+        <button type="submit">Verificar resposta</button>
+      </form>
+
+      <p id="feedback" role="status" aria-live="polite">
+        Pronto para começar?
+      </p>
+
+      <p id="score">Pontuação: 0</p>
+
+      <button id="next-round" type="button" hidden>
+        Próxima palavra
+      </button>
+    </section>
+
+    <section aria-labelledby="braille-title">
+      <h2 id="braille-title">Aprenda Braille</h2>
+      <p id="braille-description">
+        Os pontos destacados representam cada caractere.
+      </p>
+      <div
+        id="braille-display"
+        class="braille-display"
+        aria-label="Representação Braille da palavra"
+      ></div>
+    </section>
+
+    <section id="learning" hidden aria-labelledby="learning-title">
+      <h2 id="learning-title">Aprenda com a palavra</h2>
+      <p id="definition"></p>
+      <p id="example"></p>
+    </section>
+  </main>
+</body>
+</html>

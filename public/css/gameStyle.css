@@ -1,0 +1,121 @@
+
+:root {
+  font-family: system-ui, sans-serif;
+  color: #f7f7f7;
+  background: #101218;
+  font-size: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.game {
+  width: min(900px, 100% - 32px);
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+section {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid #666b78;
+  border-radius: 16px;
+}
+
+h1, h2 {
+  line-height: 1.25;
+}
+
+button, input {
+  font: inherit;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+button {
+  background: #ffe66d;
+  color: #161616;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+  margin: 8px 8px 8px 0;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin: 8px 0 16px;
+  background: #fff;
+  color: #111;
+  border: 2px solid #777;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 4px solid #7dd3fc;
+  outline-offset: 4px;
+}
+
+.braille-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.braille-cell {
+  display: grid;
+  grid-template-columns: repeat(2, 24px);
+  grid-template-rows: repeat(3, 24px);
+  gap: 8px;
+}
+
+.braille-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #555b68;
+  border: 2px solid #aeb4c0;
+}
+
+.braille-dot.active {
+  background: #ffe66d;
+  border-color: #ffe66d;
+  box-shadow: 0 0 0 2px #101218;
+}
+
+.word-space {
+  width: 16px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .game {
+    width: calc(100% - 20px);
+  }
+
+  section {
+    padding: 16px;
+  }
+
+  .braille-cell {
+    grid-template-columns: repeat(2, 20px);
+    grid-template-rows: repeat(3, 20px);
+    gap: 7px;
+  }
+
+  .braille-dot {
+    width: 20px;
+    height: 20px;
+  }
+}
