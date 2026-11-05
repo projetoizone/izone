@@ -1,0 +1,29 @@
+
+.braille-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.braille-cell {
+  display: grid;
+  grid-template-columns: repeat(2, 24px);
+  grid-template-rows: repeat(3, 24px);
+  gap: 8px;
+}
+
+.braille-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #555b68;
+  border: 2px solid #aeb4c0;
+}
+
+.braille-dot.active {
+  background: #ffe66d;
+  border-color: #ffe66d;
+  box-shadow: 0 0 0 2px #101218;
+}

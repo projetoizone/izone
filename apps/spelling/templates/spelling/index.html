@@ -1,3 +1,5 @@
+{% load static %}
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -5,8 +7,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SoletraBraille</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="game.js" defer></script>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/braille.css' %}">
+  <!-- <link rel="stylesheet" href="{% static 'css/gameStyle.css' %}"> -->
+
+  <script src="{% static 'js/game.js' %}" defer></script>
 </head>
 <body>
   <main class="game">
@@ -15,69 +20,73 @@
       <p>Aprenda palavras e descubra o sistema Braille.</p>
     </header>
 
-    <section aria-labelledby="round-title">
-      <h2 id="round-title">Desafio de soletração</h2>
+    <div class="card-grid">
+      <section aria-labelledby="round-title" class="card">
+        <h2 id="round-title">Desafio de soletração</h2>
 
-      <p id="instructions">
-        Ouça a palavra e digite sua grafia.
-      </p>
+        <p id="instructions">
+          Ouça a palavra e digite sua grafia.
+        </p>
 
-      <button id="hear-word" type="button">
-        Ouvir palavra novamente
-      </button>
-
-
-      <label for="voice-select">Voz do jogo:</label>
-      <select id="voice-select"></select>
-      <button type="button" id="test-voice">
-      Testar voz
-      </button>
+        <button id="hear-word" type="button" class="btn btn-primary">
+          Ouvir palavra novamente
+        </button>
 
 
-      <form id="answer-form">
-        <label for="answer">Sua resposta</label>
-        <input
-          id="answer"
-          name="answer"
-          type="text"
-          autocomplete="off"
-          autocapitalize="none"
-          spellcheck="false"
-          aria-describedby="instructions feedback"
-          required
-        >
+        <label for="voice-select">Voz do jogo:</label>
+        <select id="voice-select"></select>
+        <button type="button" id="test-voice" class="btn btn-primary">
+        Testar voz
+        </button>
 
-        <button type="submit">Verificar resposta</button>
-      </form>
 
-      <p id="feedback" role="status" aria-live="polite">
-        Pronto para começar?
-      </p>
+        <form id="answer-form">
+          <label for="answer">Sua resposta</label>
+          <input
+            id="answer"
+            name="answer"
+            type="text"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            aria-describedby="instructions feedback"
+            required
+          >
 
-      <p id="score">Pontuação: 0</p>
+          <button type="submit" class="btn btn-primary">Verificar resposta</button>
+        </form>
 
-      <button id="next-round" type="button" hidden>
-        Próxima palavra
-      </button>
-    </section>
+        <p id="feedback" role="status" aria-live="polite">
+          Pronto para começar?
+        </p>
 
-    <section aria-labelledby="braille-title">
-      <h2 id="braille-title">Aprenda Braille</h2>
-      <p id="braille-description">
-        Os pontos destacados representam cada caractere.
-      </p>
-      <div
-        id="braille-display"
-        class="braille-display"
-        aria-label="Representação Braille da palavra"
-      ></div>
-    </section>
+        <p id="score">Pontuação: 0</p>
 
-    <section id="learning" hidden aria-labelledby="learning-title">
-      <h2 id="learning-title">Aprenda com a palavra</h2>
-      <p id="definition"></p>
-      <p id="example"></p>
-    </section>
+        <button id="next-round" type="button" hidden>
+          Próxima palavra
+        </button>
+      </section>
+
+      <section aria-labelledby="braille-title" class="card">
+        <h2 id="braille-title">Aprenda Braille</h2>
+        <p id="braille-description">
+          Os pontos destacados representam cada caractere.
+        </p>
+        <div
+          id="braille-display"
+          class="braille-display"
+          aria-label="Representação Braille da palavra"
+        ></div>
+      </section>
+
+      <section id="learning" hidden aria-labelledby="learning-title" class="card">
+        <h2 id="learning-title">Aprenda com a palavra</h2>
+        <p id="definition"></p>
+        <p id="example"></p>
+      </section>
+    </div>
   </main>
+    <script src="{% static 'js/accessibility.js' %}"></script>
+    <script src="{% static 'js/demo-interactions.js' %}"></script>
 </body>
 </html>
