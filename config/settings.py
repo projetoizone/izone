@@ -57,7 +57,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "public" / "html"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -119,9 +119,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "public",
-]
+STATICFILES_DIRS = [BASE_DIR / "public"]
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
@@ -131,3 +129,7 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+AUTH_USER_MODEL = "accounts.User"
+LOGIN_REDIRECT_URL = "learning:home"
+LOGOUT_REDIRECT_URL = "accounts:login"
