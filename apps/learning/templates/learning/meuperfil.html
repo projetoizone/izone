@@ -5,7 +5,7 @@
 
 {% block content %}
 <main id="conteudo-principal">
-  <h2 class="page-title">BEM-VINDO DE VOLTA, CARLOS!</h2>
+  <h2 class="page-title">BEM-VINDO DE VOLTA, {{ request.user.username }}!</h2>
 
   <nav aria-label="Seções do perfil" style="margin-bottom:1.5rem;">
     <ul style="display:flex;gap:1rem;flex-wrap:wrap;">

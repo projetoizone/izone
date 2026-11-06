@@ -1,6 +1,10 @@
 {% load static %}
 
 <!-- URLs -->
+{% url 'accounts:signup' as signup_url %}
+{% url 'accounts:login' as login_url %}
+{% url 'accounts:logout' as logout_url %}
+
 {% url 'learning:home' as home_url %}
 {% url 'learning:cursos' as cursos_url %}
 {% url 'learning:tutoriais' as tutoriais_url %}
@@ -70,6 +74,7 @@
     </div>
 
     {% block navbar %}{% endblock %}
+    {% block signuplogin %}{% endblock %}
 
     </header>
 

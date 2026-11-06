@@ -5,13 +5,33 @@
 {% block navbar %}
 <nav class="main-nav" aria-label="Principal">
     <div class="container">
-    <ul>
-        <li><a href="{{ home_url }}" {% if request.path == home_url %}aria-current="page"{% endif %}>INÍCIO</a></li>
-        <li><a href="{{ cursos_url }}" {% if request.path == cursos_url %}aria-current="page"{% endif %}>CURSOS</a></li>            
-        <li><a href="{{ tutoriais_url }}" {% if request.path == tutoriais_url %}aria-current="page"{% endif %}>TUTORIAIS</a></li>
-        <li><a href="{{ comunidade_url }}" {% if request.path == comunidade_url %}aria-current="page"{% endif %}>COMUNIDADE</a></li>
-        <li><a href="{{ meuperfil_url }}" {% if request.path == meuperfil_url %}aria-current="page"{% endif %}>MEU PERFIL</a></li>
-    </ul>
+        <ul>
+            <li><a href="{{ home_url }}" {% if request.path == home_url %}aria-current="page"{% endif %}>INÍCIO</a></li>
+            <li><a href="{{ cursos_url }}" {% if request.path == cursos_url %}aria-current="page"{% endif %}>CURSOS</a></li>            
+            <li><a href="{{ tutoriais_url }}" {% if request.path == tutoriais_url %}aria-current="page"{% endif %}>TUTORIAIS</a></li>
+            <li><a href="{{ comunidade_url }}" {% if request.path == comunidade_url %}aria-current="page"{% endif %}>COMUNIDADE</a></li>
+            {% if request.user.is_authenticated %}
+                <li><a href="{{ meuperfil_url }}" {% if request.path == meuperfil_url %}aria-current="page"{% endif %}>MEU PERFIL</a></li>
+            {% endif %}
+        </ul>
     </div>
 </nav>
+{% endblock %}
+
+{% block signuplogin %}
+{% if request.user.is_authenticated %}
+    <form action="{{ logout_url }}" method="post">
+        {% csrf_token %}
+        <button type="submit">SAIR</button>
+    </form>
+{% else %}
+    <nav class="main-nav" aria-label="Principal">
+    <div class="container">
+        <ul>
+            <li><a href="{{ signup_url }}" {% if request.path == signup_url %}aria-current="page"{% endif %}>CRIAR CONTA</a></li>
+            <li><a href="{{ login_url }}" {% if request.path == login_url %}aria-current="page"{% endif %}>ENTRAR</a></li>
+        </ul>
+    </div>
+    </nav>
+{% endif %}
 {% endblock %}
