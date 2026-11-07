@@ -1,0 +1,47 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Criar Conta{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal" class="container">
+    <div class="auth-grid">
+        <section class="card" aria-labelledby="signup-heading" style="max-width: 520px; margin: 0 auto; width: 100%;">
+            <h2 id="signup-heading" class="page-title">Criar uma conta</h2>
+            
+            {% if form.non_field_errors %}
+                <div class="field-error-block" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <div class="field-hint">{{ field.help_text|safe }}</div>
+                        {% endif %}
+
+                        {% if field.errors %}
+                            <p class="field-error" id="{{ field.id_for_label }}-error">{{ field.erros.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary btn-lock">Criar conta</button>
+            
+                <p class="field-hint" style="text-align: center; margin-top: 1.25rem;">
+                    Já possui uma conta? <a href="{{ login_url }}">Entre aqui</a>.
+                </p>
+            </form>
+        </section>
+    </div>
+</main>
+{% endblock %}

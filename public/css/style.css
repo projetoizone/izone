@@ -154,6 +154,56 @@ h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 .main-nav a:hover { color: var(--accent); }
 .main-nav a[aria-current="page"] { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
 
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-links, .nav-auth {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-auth li:not(:last-child) {
+  border-right: 2px solid var(--border);
+}
+
+.logout-form {
+  display: inline-flex;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.nav-logout-btn:hover, .nav-logout-btn:focus-visible {
+  color: var(--accent);
+}
+
+/* Autenticação (signup/login) */
+
+.auth-grid {
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.field-error-block {
+  margin-bottom: 1rem;
+}
+
 /* Botões */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;

@@ -19,3 +19,6 @@ db.*
 
 # MacOS
 .DS_Store
+
+# Others
+__ignore__

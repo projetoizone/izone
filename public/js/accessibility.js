@@ -1,7 +1,7 @@
 // Barra de acessibilidade: fonte, contraste, tema e leitura em voz alta
 
 const root = document.documentElement;
-const STEPS = [1, 1.1, 1.2, 1.3]; // 100% ate 130%
+const STEPS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]; // 100% ate 200%
 const announcer = document.getElementById("a11y-announcer");
 
 function announce(msg) {
@@ -18,6 +18,8 @@ function getStepIndex() {
 function applyFontStep(index) {
   root.style.setProperty("--fs-step", STEPS[index]);
   localStorage.setItem("izone-fs-step", String(index));
+
+  saveUserPreferences({ font_size: STEPS[index] });
 }
 
 function applyTheme(theme) {
@@ -29,6 +31,8 @@ function applyTheme(theme) {
   localStorage.setItem("izone-theme", theme || "dark");
   const themeBtn = document.querySelector('[data-action="toggle-theme"]');
   if (themeBtn) themeBtn.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
+
+  saveUserPreferences({ theme: theme });
 }
 
 function applyContrast(high) {
@@ -40,12 +44,27 @@ function applyContrast(high) {
   localStorage.setItem("izone-contrast", high ? "high" : "normal");
   const contrastBtn = document.querySelector('[data-action="toggle-contrast"]');
   if (contrastBtn) contrastBtn.setAttribute("aria-pressed", high ? "true" : "false");
+
+  saveUserPreferences({ contrast: high ? "high" : "normal" });
+}
+
+function saveUserPreferences(preferences) {
+  if (!window.user.is_authenticated) return;
+  
+  fetch("/accounts/update-preferences", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": window.csrftoken
+    },
+    body: JSON.stringify(preferences)
+  });
 }
 
 // carrega as preferencias salvas
-applyFontStep(getStepIndex());
-applyTheme(localStorage.getItem("izone-theme"));
-applyContrast(localStorage.getItem("izone-contrast") === "high");
+// applyFontStep(getStepIndex());
+// applyTheme(localStorage.getItem("izone-theme"));
+// applyContrast(localStorage.getItem("izone-contrast") === "high");
 
 document.addEventListener("DOMContentLoaded", () => {
   const incBtn = document.querySelector('[data-action="font-increase"]');

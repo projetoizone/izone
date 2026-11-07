@@ -1,0 +1,115 @@
+{% load static %}
+
+<!-- URLs -->
+{% url 'accounts:signup' as signup_url %}
+{% url 'accounts:login' as login_url %}
+{% url 'accounts:logout' as logout_url %}
+
+{% url 'learning:home' as home_url %}
+{% url 'learning:cursos' as cursos_url %}
+{% url 'learning:tutoriais' as tutoriais_url %}
+{% url 'learning:comunidade' as comunidade_url %}
+{% url 'learning:meuperfil' as meuperfil_url %}
+
+<!DOCTYPE html>
+<html lang="pt-BR"
+    {% if request.user.is_authenticated and user_preferences %}
+        data-theme="{{ user_preferences.theme }}"
+        data-contrast="{{ user_preferences.contrast }}"
+        style="--fs-step: {{ user_preferences.font_size|stringformat:'.1f' }}"
+    {% endif %}
+> <!--WCAG 3.1.1-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--WCAG 1.4.10-->
+    
+    <title>{% block title %}iZone{% endblock %} - iZone</title> <!--WCAG 2.4.2-->
+
+    <script>
+        window.user = window.user || {};
+        window.user.preferences = window.user.preferences || {}
+
+        window.user.is_authenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+        window.user.preferences.theme = "{{ user_preferences.theme }}"
+        window.user.preferences.contrast = "{{ user_preferences.contrast }}"
+        window.user.preferences.font_size = "{{ user_preferences.font_size|stringformat:'.1f' }}"
+
+        window.csrftoken = "{{ csrf_token }}";
+        
+        (function(){
+            const STEPS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]; // 100% ate 200%
+
+            if (window.user.is_authenticated) {
+                localStorage.setItem("izone-theme", window.user.preferences.theme)
+                localStorage.setItem("izone-contrast", window.user.preferences.contrast)
+                localStorage.setItem("izone-fs-step", STEPS.indexOf(parseFloat(window.user.preferences.font_size)));
+            }
+            else {
+                const root = document.documentElement;
+                
+                console.log("not authenticated")
+
+                const theme = localStorage.getItem("izone-theme");
+                if (theme) root.setAttribute("data-theme", theme);
+
+                const contrast = localStorage.getItem("izone-contrast");
+                if (contrast === "high") root.setAttribute("data-contrast", "high");
+
+                const index = localStorage.getItem("izone-fs-step");
+                if (index != null) root.style.setProperty("--fs-step", STEPS[parseInt(index, 10)] || 1);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a> <!--WCAG 2.4.1-->
+
+    <header class="site-header">
+    <div class="header-bar">
+        <a class="logo" href="{{ home_url }}"><span class="logo-dot">i</span>Zone</a>
+
+        <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
+            <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
+            <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
+            <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
+            <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+            <button type="button" class="a11y-btn" data-action="toggle-tts"><span aria-hidden="true">🔊</span> Ouvir página</button>
+        </div>
+
+        <form class="search-field" role="search" action="busca.html" method="get">
+            <label class="sr-only" for="busca">Pesquisar cursos, tópicos e tutoriais</label>
+            <input type="search" id="busca" name="q" placeholder="Pesquisar cursos, tópicos e tutoriais">
+        </form>
+    </div>
+
+    {% block navbar %}{% endblock %}
+    {% block signuplogin %}{% endblock %}
+
+    </header>
+
+    <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
+    {% block content %}{% endblock %}
+    
+    <footer class="site-footer">
+        <nav aria-label="Rodapé">
+        <ul>
+            <li><a href="sobrenos.html">SOBRE NÓS</a></li>
+            <li><a href="acessibilidade.html">ACESSIBILIDADE</a></li>
+            <li><a href="contato.html">CONTATO</a></li>
+            <li><a href="termosdeuso.html">TERMOS DE USO</a></li>
+            <li><a href="politica_privacidade.html">POLÍTICA DE PRIVACIDADE</a></li>
+        </ul>
+      </nav>
+      <p>WCAG 2.2 AA</p>
+      <p>© 2026 iZone. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="{% static 'js/accessibility.js' %}"></script>
+    <script src="{% static 'js/demo-interactions.js' %}"></script>
+    {% block postjs %}{% endblock %}
+</body>
+</html>

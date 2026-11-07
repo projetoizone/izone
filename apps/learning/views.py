@@ -4,25 +4,25 @@ This module (views.py) corresponds to the 'Controller' in the MVC Architecture.
 The MVC 'View' is the 'templates/' folder
 """
 
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
 
 
-def home(request) -> HttpResponse:
-    return render(request, "learning/home.html", {})
+class HomeView(TemplateView):
+    template_name = "learning/home.html"
 
 
-def cursos(request) -> HttpResponse:
-    return render(request, "learning/cursos.html", {})
+class CursosView(TemplateView):
+    template_name = "learning/cursos.html"
 
 
-def tutoriais(request) -> HttpResponse:
-    return render(request, "learning/tutoriais.html", {})
+class TutoriaisView(TemplateView):
+    template_name = "learning/tutoriais.html"
 
 
-def comunidade(request) -> HttpResponse:
-    return render(request, "learning/comunidade.html", {})
+class ComunidadeView(TemplateView):
+    template_name = "learning/comunidade.html"
 
 
-def meuperfil(request) -> HttpResponse:
-    return render(request, "learning/meuperfil.html", {})
+class MeuPerfilView(LoginRequiredMixin, TemplateView):
+    template_name = "learning/meuperfil.html"
