@@ -9,12 +9,12 @@ UserModel = get_user_model()
 
 
 @receiver(post_save, sender=UserModel)
-def create_user_prefencer(sender, instance, created, **kwargs):
+def create_user_prefences(sender, instance, created, **kwargs):
     if created:
         UserPreferences.objects.create(user=instance)
 
 
 @receiver(post_save, sender=UserModel)
-def save_user_prefencer(sender, instance, **kwargs):
+def save_user_prefences(sender, instance, **kwargs):
     if hasattr(instance, "preferences"):
         instance.preferences.save()
