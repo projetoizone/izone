@@ -1,14 +1,67 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}Entrar{% endblock %}
 
 {% block content %}
+<main id="conteudo-principal" class="container">
+    <div class="auth-grid">
+        <section class="card" aria-labelledby="login-heading" style="max-width: 480px; margin: 0 auto; width: 100%;">
+            <h2 id="login-heading" class="page-title">Entrar no iZone</h2>
+            
+            {% if form.non_field_errors %}
+                <div class="field-error-block" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Log In</button>
-</form>
+            <form method="post" novalidate>
+                {% csrf_token %}
 
+                <div class="field">
+                    <label for="{{ form.username.id_for_label }}">Usuário</label>
+                    <input
+                        type="text"
+                        name="{{ form.username.html_name }}"
+                        id="{{ form.username.id_for_label }}"
+                        value="{{ form.username.value|default:'' }}"
+                        autocomplete="username"
+                        required
+                        {% if form.username.errors %}
+                            aria-invalid="true" aria-describedby="username-error"
+                        {% endif %}
+                    >
+                    {% if form.username.errors %}
+                        <p class="field-error" id="username-error">{{ form.username.erros.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.password.id_for_label }}">Senha</label>
+                    <input
+                        type="password"
+                        name="{{ form.password.html_name }}"
+                        id="{{ form.password.id_for_label }}"
+                        autocomplete="current-password"
+                        required
+                        {% if form.password.errors %}
+                            aria-invalid="true" aria-describedby="password-error"
+                        {% endif %}
+                    >
+                    {% if form.password.errors %}
+                        <p class="field-error" id="password-error">{{ form.password.erros.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lock">Entrar</button>
+            
+                <p class="field-hint" style="text-align: center; margin-top: 1.25rem;">
+                    Ainda não tem uma conta? <a href="{{ signup_url }}">Cadastre-se aqui</a>.
+                </p>
+            </form>
+        </section>
+    </div>
+</main>
 {% endblock %}
