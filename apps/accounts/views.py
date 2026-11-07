@@ -57,14 +57,15 @@ class UpdatePreferencesView(View):
             updated_fields.append("contrast")
 
         if font_size := new_preferences.get("font_size"):
-            if font_size not in FontSize.values:
-                return HttpResponseBadRequest("Tamanho de fonte inválida.")
-
             try:
-                user_preferences.font_size = float(font_size)
+                font_size = float(font_size)
             except (ValueError, TypeError):
-                return HttpResponseBadRequest("Tamanho de fonte inválida.")
+                return HttpResponseBadRequest("Tamanho de fonte inválido.")
+            
+            if font_size not in FontSize.values:
+                return HttpResponseBadRequest("Tamanho de fonte não permitido.")
 
+            user_preferences.font_size = float(font_size)
             updated_fields.append("font_size")
 
         if updated_fields:
