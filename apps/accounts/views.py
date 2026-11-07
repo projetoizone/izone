@@ -30,7 +30,7 @@ class LogInView(LoginView):
 class UpdatePreferencesView(View):
     def post(self, request):
         if not request.user.is_authenticated:
-            return
+            return JsonResponse({"status": "ignored", "message": "Usuário Anônimo"}, status=200)
 
         try:
             new_preferences = json.loads(request.body)
