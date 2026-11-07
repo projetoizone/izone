@@ -30,7 +30,9 @@ class LogInView(LoginView):
 class UpdatePreferencesView(View):
     def post(self, request):
         if not request.user.is_authenticated:
-            return JsonResponse({"status": "ignored", "message": "Usuário Anônimo"}, status=200)
+            return JsonResponse(
+                {"status": "ignored", "message": "Usuário Anônimo"}, status=200
+            )
 
         try:
             new_preferences = json.loads(request.body)
@@ -61,7 +63,7 @@ class UpdatePreferencesView(View):
                 font_size = float(font_size)
             except (ValueError, TypeError):
                 return HttpResponseBadRequest("Tamanho de fonte inválido.")
-            
+
             if font_size not in FontSize.values:
                 return HttpResponseBadRequest("Tamanho de fonte não permitido.")
 

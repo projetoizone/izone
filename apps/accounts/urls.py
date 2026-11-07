@@ -9,6 +9,8 @@ urlpatterns = [
     path("login", views.LogInView.as_view(), name="login"),
     path("logout", LogoutView.as_view(), name="logout"),
     path(
-        "update-preferences", views.UpdatePreferencesView.as_view(), name="update_preferences"
+        "update-preferences",
+        views.UpdatePreferencesView.as_view(),
+        name="update_preferences",
     ),
 ]

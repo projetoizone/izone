@@ -11,14 +11,18 @@ from django.views.generic import TemplateView
 class HomeView(TemplateView):
     template_name = "learning/home.html"
 
+
 class CursosView(TemplateView):
     template_name = "learning/cursos.html"
+
 
 class TutoriaisView(TemplateView):
     template_name = "learning/tutoriais.html"
 
+
 class ComunidadeView(TemplateView):
     template_name = "learning/comunidade.html"
+
 
 class MeuPerfilView(LoginRequiredMixin, TemplateView):
     template_name = "learning/meuperfil.html"
