@@ -1,0 +1,119 @@
+
+{% extends "learning/base.html" %}
+{% load static %}
+
+{% block title %}Dicionário de Inglês{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/dictionary.css' %}">
+{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+    <div class="dictionary-layout">
+
+        <header class="dictionary-page-header">
+            <h1 class="page-title">DICIONÁRIO DE INGLÊS</h1>
+
+            <p class="lede">
+                Pesquise uma palavra em inglês e explore suas definições,
+                pronúncias e exemplos de utilização.
+            </p>
+        </header>
+
+        <section class="card" aria-labelledby="dictionary-heading">
+            <h2 id="dictionary-heading">Pesquisar palavra</h2>
+
+            <form
+                id="dictionaryForm"
+                data-definition-url="{% url 'learning:get_definition' %}"
+                class="dictionary-form"
+            >
+                <div class="field">
+                    <label for="word">Palavra em inglês</label>
+
+                    <input
+                        type="search"
+                        id="word"
+                        name="word"
+                        placeholder="Ex.: accessibility"
+                        autocomplete="off"
+                        required
+                        aria-describedby="dictionary-hint"
+                        aria-controls="dictionaryResult"
+                    >
+
+                    <p class="field-hint" id="dictionary-hint">
+                        Digite uma palavra e pressione Enter ou selecione Pesquisar.
+                    </p>
+                </div>
+
+                <button
+                    class="btn btn-primary"
+                    id="dictionarySubmit"
+                    type="submit"
+                >
+                    Pesquisar
+                </button>
+            </form>
+
+            <p
+                id="dictionaryStatus"
+                class="dictionary-status"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+            ></p>
+
+            <article
+                id="dictionaryResult"
+                class="dictionary-result"
+                aria-labelledby="displayWord"
+                hidden
+            >
+                <header class="dictionary-header">
+                    <h2 id="displayWord" class="dictionary-word"></h2>
+                </header>
+
+                <section
+                    id="phoneticsSection"
+                    class="dictionary-section"
+                    aria-labelledby="phoneticsHeading"
+                    hidden
+                >
+                    <h3 id="phoneticsHeading">Pronúncia</h3>
+
+                    <ul
+                        id="displayPhonetics"
+                        class="phonetics-list"
+                    ></ul>
+                </section>
+
+                <section
+                    class="dictionary-section"
+                    aria-labelledby="meaningsHeading"
+                >
+                    <h3 id="meaningsHeading">Significados</h3>
+
+                    <ol id="displayMeanings" class="meanings-list"></ol>
+                </section>
+
+                <footer
+                    id="dictionarySources"
+                    class="dictionary-sources"
+                    hidden
+                >
+                    <h3>Fontes e atribuição</h3>
+
+                    <ul id="displaySources" class="source-list"></ul>
+                    <p id="displayLicense" class="dictionary-license"></p>
+                </footer>
+            </article>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block postjs %}
+    <script src="{% static 'js/dictionary.js' %}" defer></script>
+{% endblock %}

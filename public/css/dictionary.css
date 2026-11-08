@@ -1,0 +1,85 @@
+.phonetics-list,
+.meanings-list,
+.definition-list,
+.dictionary-word-list,
+.source-list {
+    list-style: none;
+    padding: 0;
+}
+
+.phonetics-list,
+.meanings-list,
+.definition-list,
+.dictionary-word-list,
+.source-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.meaning-card,
+.definition-card,
+.phonetic-card {
+    min-width: 0;
+}
+
+.phonetic-audio {
+    max-width: 100%;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+audio:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+}
+
+.dictionary-layout {
+    max-width: 760px;
+    margin: 0 auto;
+}
+.dictionary-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.75rem;
+}
+.dictionary-form .field {
+    flex: 1 1 260px;
+    margin-bottom: 0;
+}
+.dictionary-form input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    background: var(--bg-input);
+    color: var(--text);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+}
+.dictionary-result {
+    margin-top: 1.5rem;
+}
+.dictionary-result[hidden] {
+    display: none;
+}
+.dictionary-result h3 {
+    margin-top: 0;
+}
+.dictionary-status {
+    min-height: 1.5em;
+    margin-top: 1rem;
+    color: var(--text-muted);
+}
+.dictionary-error {
+    color: var(--danger);
+}
+.dictionary-word {
+    overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+    .dictionary-form .btn {
+      width: 100%;
+    }
+}
