@@ -72,8 +72,14 @@ function saveUserPreferences(preferences) {
   });
 }
 
-// carrega as preferencias salvas
-// applyFontStep(getStepIndex());
+// carrega as preferencias salvas. Nas paginas do Django, o script no <head> de base.html ja
+// faz isso antes de a pagina aparecer; as copias estaticas em prototype/views nao tem esse script
+if (!window.user) {
+  const theme = localStorage.getItem("izone-theme");
+  if (theme) root.setAttribute("data-theme", theme);
+  if (localStorage.getItem("izone-contrast") === "high") root.setAttribute("data-contrast", "high");
+  root.style.setProperty("--fs-step", STEPS[getStepIndex()]);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const incBtn = document.querySelector('[data-action="font-increase"]');
