@@ -18,6 +18,7 @@
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --max-width: 1200px;
   --fs-step: 1; /* muda com A+ e A- */
+  --gutter: min(1.5rem, 5vw); /* margem lateral: nao cresce com a fonte em telas estreitas */
 }
 
 /* Tema claro */
@@ -73,6 +74,7 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   line-height: 1.5; /* WCAG 1.4.12 */
+  overflow-wrap: anywhere; /* palavras longas quebram em vez de vazar da caixa (WCAG 1.4.4 e 1.4.10) */
 }
 img { max-width: 100%; display: block; }
 a { color: var(--link); }
@@ -85,6 +87,13 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 /* o jogo ja usava h1 e h2; mantem a aparencia que esses titulos tinham */
 .game h1 { font-weight: 700; letter-spacing: normal; margin: 0.67em 0; }
 .game h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
+/* jogo: cada rotulo fica acima do seu campo, que segue o estilo dos outros campos */
+.game label { display: block; margin: 1rem 0 0.35rem; font-weight: 700; }
+.game input[type="text"], .game select {
+  max-width: 100%; min-height: 44px; padding: 0 0.9rem; /* WCAG 2.5.8 */
+  background: var(--bg-input); color: var(--text);
+  border: 2px solid var(--border); border-radius: 8px; font: inherit;
+}
 .lede { font-size: 1.125rem; font-weight: 600; max-width: 62ch; margin: 0 0 1.75rem; }
 
 /* Utilitários */
@@ -92,7 +101,7 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
-.container { max-width: var(--max-width); margin: 0 auto; padding: 0 1.5rem; }
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--gutter); }
 
 /* WCAG 2.4.1 */
 .skip-link {
@@ -116,7 +125,7 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 .site-header { background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
 .header-bar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem var(--gutter);
 }
 .logo {
   font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none;
@@ -136,15 +145,15 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 }
 .a11y-btn[aria-pressed="true"], .a11y-btn.is-active { background: var(--accent); color: var(--accent-ink); }
 .a11y-btn[hidden] { display: none; }
-.a11y-speed { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; }
+.a11y-speed { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; }
 .a11y-speed select {
-  min-height: 44px; padding: 0 0.5rem; /* WCAG 2.5.8 */
+  max-width: 100%; min-height: 44px; padding: 0 0.5rem; /* WCAG 2.5.8 */
   background: var(--bg-input); color: var(--text);
   border: 2px solid var(--border); border-radius: 8px; font: inherit;
 }
 .a11y-btn:hover { background: var(--border); color: var(--accent-ink); }
 
-.search-field { display: flex; align-items: center; min-width: 220px; flex: 1 1 260px; }
+.search-field { display: flex; align-items: center; min-width: min(220px, 100%); flex: 1 1 260px; }
 .search-field input {
   width: 100%; min-height: 44px; padding: 0 0.9rem;
   background: var(--bg-input); color: var(--text);
@@ -247,7 +256,13 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 a.card:hover, a.card:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
-.card-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+/* colunas em rem: com a fonte maior cabem menos cards por linha, como no zoom */
+.card-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); }
+
+/* conteudo com barra lateral: lado a lado quando cabe, um embaixo do outro quando nao cabe */
+.with-sidebar { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; }
+.with-sidebar > .sidebar { flex: 1 1 var(--sidebar-width, 16rem); }
+.with-sidebar > .not-sidebar { flex: 999 1 0; min-width: 50%; }
 .card h2, .card h3 { margin-top: 0; }
 .card-icon {
   display: inline-flex; align-items: center; justify-content: center;
@@ -257,7 +272,7 @@ a.card:hover, a.card:focus-visible { transform: translateY(-2px); box-shadow: 0 
 }
 
 /* Auth (login/cadastro) */
-.auth-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.auth-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(min(18.75rem, 100%), 1fr)); align-items: start; }
 
 /* Barra de progresso */
 .progress-label { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 0.3rem; }
@@ -284,18 +299,20 @@ kbd {
 }
 
 /* Rodapé */
-.site-footer { border-top: 1px solid var(--border); margin-top: 3rem; padding: 1.5rem; text-align: center; color: var(--text-muted); }
+.site-footer { border-top: 1px solid var(--border); margin-top: 3rem; padding: 1.5rem var(--gutter); text-align: center; color: var(--text-muted); }
 .site-footer nav ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 0.9rem; margin-bottom: 0.75rem; }
 .site-footer a { color: var(--text-muted); }
 .site-footer a:hover { color: var(--accent); }
 
 /* Layout */
-main { padding: 2rem 1.5rem; max-width: var(--max-width); margin: 0 auto; }
+main { padding: 2rem var(--gutter); max-width: var(--max-width); margin: 0 auto; }
 .page-title { margin-bottom: 1.5rem; }
 
 @media (max-width: 640px) {
   .header-bar { flex-direction: column; align-items: stretch; }
+  .search-field { flex: none; } /* na coluna, o flex-basis viraria altura */
   .main-nav ul { justify-content: center; }
+  .main-nav a, .nav-logout-btn { padding: 0.75rem 0.9rem; }
 }
 
 /* Toast */

@@ -230,7 +230,7 @@ class ScreenReaderStructureTests(TestCase):
     def test_the_community_sidebar_is_named_by_its_heading(self):
         html = self.client.get(reverse("learning:comunidade")).content.decode()
 
-        self.assertIn('<aside class="card" aria-labelledby="populares-h">', html)
+        self.assertRegex(html, r'<aside\b[^>]*aria-labelledby="populares-h"')
         self.assertIn('id="populares-h"', html)
 
 
@@ -252,3 +252,19 @@ class ReadAloudSpeedTests(TestCase):
         response = self.client.get(reverse("learning:acessibilidade"))
 
         self.assertContains(response, '<th scope="row">Velocidade</th>')
+
+
+class ZoomTests(TestCase):
+    def test_accessibility_page_explains_browser_zoom(self):
+        response = self.client.get(reverse("learning:acessibilidade"))
+
+        self.assertContains(response, "<kbd>Ctrl</kbd> + <kbd>+</kbd> aumenta")
+
+    def test_layouts_with_a_sidebar_can_stack(self):
+        # fixed grid columns don't reflow at 400% zoom; .with-sidebar stacks when needed
+        for name in ("learning:cursos", "learning:comunidade"):
+            with self.subTest(page=name):
+                html = self.client.get(reverse(name)).content.decode()
+
+                self.assertIn('class="with-sidebar"', html)
+                self.assertNotIn("grid-template-columns", html)
