@@ -259,6 +259,21 @@ a.card:hover, a.card:focus-visible { transform: translateY(-2px); box-shadow: 0 
 .badge { text-align: center; }
 .badge-icon { font-size: 2.5rem; }
 
+/* Documentação (página de acessibilidade) */
+.section-nav { margin-bottom: 1.5rem; }
+.section-nav ul { display: flex; flex-wrap: wrap; gap: 1rem; }
+.doc-list { list-style: disc; padding-left: 1.5rem; }
+.doc-list li { margin-bottom: 0.4rem; }
+.key-table { width: 100%; max-width: 62rem; border-collapse: collapse; margin: 0 0 1rem; }
+.key-table th, .key-table td { padding: 0.6rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+.key-table thead th { background: var(--bg-elevated); }
+kbd {
+  display: inline-block; min-width: 1.75em; padding: 0 0.4em;
+  background: var(--bg-input); color: var(--text);
+  border: 1px solid var(--border); border-bottom-width: 3px; border-radius: 4px;
+  font-family: inherit; font-size: 0.9em; font-weight: 700; line-height: 1.5; text-align: center;
+}
+
 /* Rodapé */
 .site-footer { border-top: 1px solid var(--border); margin-top: 3rem; padding: 1.5rem; text-align: center; color: var(--text-muted); }
 .site-footer nav ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 0.9rem; margin-bottom: 0.75rem; }

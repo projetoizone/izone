@@ -9,4 +9,5 @@ urlpatterns = [
     path("tutoriais", views.TutoriaisView.as_view(), name="tutoriais"),
     path("comunidade", views.ComunidadeView.as_view(), name="comunidade"),
     path("meuperfil", views.MeuPerfilView.as_view(), name="meuperfil"),
+    path("acessibilidade", views.AcessibilidadeView.as_view(), name="acessibilidade"),
 ]
