@@ -13,7 +13,7 @@ class GameViewTests(TestCase):
         response = self.client.get(reverse("spelling:game"))
 
         self.assertTemplateUsed(response, "base.html")
-        self.assertContains(response, 'data-action="toggle-contrast"')
+        self.assertContains(response, 'data-action="theme"')
         self.assertContains(response, "js/game.js")
 
     def test_braille_display_label_is_announced(self):

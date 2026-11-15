@@ -115,6 +115,14 @@ class UpdatePreferencesViewTests(TestCase):
         self.assertEqual(preferences.contrast, "high")
         self.assertEqual(preferences.font_size, 1.5)
 
+    def test_accepts_every_theme_of_the_selector(self):
+        for theme in ("light", "dark", "yellow", "sepia"):
+            with self.subTest(theme=theme):
+                response = self.post_json({"theme": theme, "contrast": "normal"})
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.preferences().theme, theme)
+
     def test_updates_only_the_fields_sent(self):
         response = self.post_json({"contrast": "high"})
 

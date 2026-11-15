@@ -15,8 +15,9 @@ def clean_preferences(data):
 
     if theme := data.get("theme"):
         if theme not in Theme.values:
+            *others, last = (f"'{value}'" for value in Theme.values)
             raise InvalidPreference(
-                "Opção de tema inválida. Temas disponíveis: 'light' e 'dark'."
+                f"Opção de tema inválida. Temas disponíveis: {', '.join(others)} e {last}."
             )
         cleaned["theme"] = theme
 

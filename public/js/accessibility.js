@@ -22,30 +22,30 @@ function applyFontStep(index) {
   saveUserPreferences({ font_size: STEPS[index] });
 }
 
-function applyTheme(theme) {
-  if (theme === "light") {
-    root.setAttribute("data-theme", "light");
-  } else {
-    root.removeAttribute("data-theme");
-  }
-  localStorage.setItem("izone-theme", theme || "dark");
-  const themeBtn = document.querySelector('[data-action="toggle-theme"]');
-  if (themeBtn) themeBtn.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
-
-  saveUserPreferences({ theme: theme });
-}
-
-function applyContrast(high) {
-  if (high) {
+// cada opcao do seletor de tema combina um tema de cores e o nivel de contraste
+function applyThemeOption(option) {
+  const theme = option.dataset.setTheme;
+  const contrast = option.dataset.setContrast;
+  root.setAttribute("data-theme", theme);
+  if (contrast === "high") {
     root.setAttribute("data-contrast", "high");
   } else {
     root.removeAttribute("data-contrast");
   }
-  localStorage.setItem("izone-contrast", high ? "high" : "normal");
-  const contrastBtn = document.querySelector('[data-action="toggle-contrast"]');
-  if (contrastBtn) contrastBtn.setAttribute("aria-pressed", high ? "true" : "false");
+  localStorage.setItem("izone-theme", theme);
+  localStorage.setItem("izone-contrast", contrast);
 
-  saveUserPreferences({ contrast: high ? "high" : "normal" });
+  saveUserPreferences({ theme: theme, contrast: contrast });
+}
+
+// a opcao que corresponde ao tema da pagina; "Amarelo no preto" e "Sepia" nao tem variante de contraste
+function currentThemeOption(select) {
+  const theme = root.getAttribute("data-theme") || "dark";
+  const contrast = root.getAttribute("data-contrast") === "high" ? "high" : "normal";
+  const options = [...select.options];
+  return options.find((o) => o.dataset.setTheme === theme && o.dataset.setContrast === contrast)
+    || options.find((o) => o.dataset.setTheme === theme)
+    || options[0];
 }
 
 function saveUserPreferences(preferences) {
@@ -63,14 +63,11 @@ function saveUserPreferences(preferences) {
 
 // carrega as preferencias salvas
 // applyFontStep(getStepIndex());
-// applyTheme(localStorage.getItem("izone-theme"));
-// applyContrast(localStorage.getItem("izone-contrast") === "high");
 
 document.addEventListener("DOMContentLoaded", () => {
   const incBtn = document.querySelector('[data-action="font-increase"]');
   const decBtn = document.querySelector('[data-action="font-decrease"]');
-  const contrastBtn = document.querySelector('[data-action="toggle-contrast"]');
-  const themeBtn = document.querySelector('[data-action="toggle-theme"]');
+  const themeSelect = document.querySelector('[data-action="theme"]');
   const ttsBtn = document.querySelector('[data-action="toggle-tts"]');
 
   if (incBtn) {
@@ -87,28 +84,17 @@ document.addEventListener("DOMContentLoaded", () => {
       announce("Tamanho da fonte: " + Math.round(STEPS[i] * 100) + "%");
     });
   }
-  if (contrastBtn) {
-    contrastBtn.setAttribute("aria-pressed", root.getAttribute("data-contrast") === "high" ? "true" : "false");
-    contrastBtn.addEventListener("click", () => {
-      const high = root.getAttribute("data-contrast") !== "high";
-      applyContrast(high);
-      announce(high ? "Alto contraste ativado" : "Alto contraste desativado");
-    });
-  }
-  if (themeBtn) {
-    themeBtn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "light" ? "true" : "false");
-    themeBtn.addEventListener("click", () => {
-      const light = root.getAttribute("data-theme") !== "light";
-      applyTheme(light ? "light" : "dark");
-      announce(light ? "Tema claro ativado" : "Tema escuro ativado");
-    });
+  // o leitor de tela ja fala a opcao escolhida na lista, entao a troca nao e anunciada de novo
+  if (themeSelect) {
+    themeSelect.value = currentThemeOption(themeSelect).value;
+    themeSelect.addEventListener("change", () => applyThemeOption(themeSelect.selectedOptions[0]));
   }
 
   // ao criar uma conta, envia as preferencias atuais para que a conta ja comece com elas
   document.querySelectorAll("form[data-send-preferences]").forEach((form) => {
     form.addEventListener("submit", () => {
       const current = {
-        theme: root.getAttribute("data-theme") === "light" ? "light" : "dark",
+        theme: root.getAttribute("data-theme") || "dark",
         contrast: root.getAttribute("data-contrast") === "high" ? "high" : "normal",
         font_size: String(STEPS[getStepIndex()]),
       };
@@ -152,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let rate = RATES.includes(savedRate) ? savedRate : 1;
 
     const speedLabel = document.createElement("label");
-    speedLabel.className = "a11y-speed";
+    speedLabel.className = "a11y-field";
     const speedText = document.createElement("span");
     speedText.textContent = "Velocidade";
     const speedSelect = document.createElement("select");
