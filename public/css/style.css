@@ -19,6 +19,8 @@
   --max-width: 1200px;
   --fs-step: 1; /* muda com A+ e A- */
   --gutter: min(1.5rem, 5vw); /* margem lateral: nao cresce com a fonte em telas estreitas */
+  --reading-bg: var(--accent);        /* frase lida em voz alta */
+  --reading-text: var(--accent-ink);
 }
 
 /* Tema claro */
@@ -33,6 +35,8 @@
   --text-muted: #4a4a4a;
   --link: #8a6900;
   --focus-ring: #0a5fb4;
+  --reading-bg: var(--text);   /* o amarelo quase nao se destaca do fundo claro */
+  --reading-text: var(--accent);
 }
 
 /* Alto contraste */
@@ -59,6 +63,8 @@
   --text-muted: #000000;
   --link: #0000ee;
   --focus-ring: #0050a0;
+  --reading-bg: var(--accent);
+  --reading-text: var(--accent-ink);
 }
 
 /* Reset */
@@ -152,6 +158,17 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
   border: 2px solid var(--border); border-radius: 8px; font: inherit;
 }
 .a11y-btn:hover { background: var(--border); color: var(--accent-ink); }
+
+/* Leitura em voz alta: a frase sendo lida fica destacada e a palavra falada, sublinhada */
+::highlight(tts-sentence) { background-color: var(--reading-bg); color: var(--reading-text); }
+::highlight(tts-word) {
+  text-decoration-line: underline; text-decoration-thickness: 0.15em;
+  text-decoration-color: var(--reading-text);
+}
+@media (forced-colors: active) {
+  ::highlight(tts-sentence) { background-color: Highlight; color: HighlightText; }
+  ::highlight(tts-word) { text-decoration-color: HighlightText; }
+}
 
 .search-field { display: flex; align-items: center; min-width: min(220px, 100%); flex: 1 1 260px; }
 .search-field input {

@@ -129,7 +129,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (ttsBtn && "speechSynthesis" in window) {
     const mainEl = document.querySelector("main");
     let selectedText = "";
+    let selectedRange = null;
     let state = "idle"; // idle | playing | paused
+    let reading = { text: "", where: [] };
     let chunks = [];
     let index = 0;
     let run = 0; // muda a cada cancelamento, para ignorar eventos de falas canceladas
@@ -206,24 +208,132 @@ document.addEventListener("DOMContentLoaded", () => {
     setLabel(stopBtn, "⏹", "Parar leitura");
     render();
 
-    // o texto e falado frase a frase: speechSynthesis.pause()/resume() nao funcionam de forma
-    // consistente entre navegadores, entao pausar cancela a fala e continuar repete a frase atual
-    const MAX_CHUNK = 200;
-    const toChunks = (text) => text
-      .split(/\n+/)
-      .flatMap((line) => line.split(/(?<=[.!?…])\s+/))
-      .flatMap((part) => {
-        const out = [];
-        let rest = part.trim();
-        while (rest.length > MAX_CHUNK) {
-          let cut = rest.lastIndexOf(" ", MAX_CHUNK);
-          if (cut <= 0) cut = MAX_CHUNK;
-          out.push(rest.slice(0, cut));
-          rest = rest.slice(cut).trim();
+    // texto a ler, com o lugar de cada caractere na pagina, para destacar o que esta sendo
+    // falado. Segue o innerText: so o que aparece, espacos juntados e uma quebra de linha
+    // entre blocos. Icones decorativos (aria-hidden) ficam de fora, como no leitor de tela;
+    // o texto .sr-only e lido junto com a frase em que esta
+    const SKIP = "script, style, noscript, template, select, textarea, [aria-hidden='true']";
+    const readableText = (range) => {
+      let text = "";
+      const where = []; // where[i] = [no de texto, posicao] do caractere i; null numa quebra de linha
+      const styles = new Map();
+      const style = (el) => {
+        if (!styles.has(el)) styles.set(el, getComputedStyle(el));
+        return styles.get(el);
+      };
+      const isBlock = (el) => {
+        const display = style(el).display;
+        return !(display.startsWith("inline") || display === "contents" || el.classList.contains("sr-only"));
+      };
+      const blockOf = (node) => {
+        let el = node.parentElement;
+        while (el && el !== document.body && !isBlock(el)) el = el.parentElement;
+        return el;
+      };
+      const newLine = () => {
+        if (text.endsWith(" ")) {
+          text = text.slice(0, -1);
+          where.pop();
         }
-        if (rest) out.push(rest);
-        return out;
+        if (text && !text.endsWith("\n")) {
+          text += "\n";
+          where.push(null);
+        }
+      };
+
+      let scope = range.commonAncestorContainer;
+      if (scope.nodeType !== Node.ELEMENT_NODE) scope = scope.parentNode;
+      const walker = document.createTreeWalker(scope, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => {
+          if (!range.intersectsNode(node)) return NodeFilter.FILTER_REJECT;
+          if (node.nodeType === Node.TEXT_NODE || node.nodeName === "BR") return NodeFilter.FILTER_ACCEPT;
+          return node.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP;
+        },
       });
+      let lastBlock = null;
+      for (let node; (node = walker.nextNode());) {
+        if (node.nodeName === "BR") {
+          newLine();
+          continue;
+        }
+        const box = document.createRange();
+        box.selectNodeContents(node);
+        if (!box.getClientRects().length || style(node.parentElement).visibility !== "visible") continue;
+        const block = blockOf(node);
+        if (block !== lastBlock) {
+          newLine();
+          lastBlock = block;
+        }
+        const from = node === range.startContainer ? range.startOffset : 0;
+        const to = node === range.endContainer ? range.endOffset : node.length;
+        for (let i = from; i < to; i++) {
+          if (/\s/.test(node.data[i])) {
+            if (!text || /\s$/.test(text)) continue;
+            text += " ";
+          } else {
+            text += node.data[i];
+          }
+          where.push([node, i]);
+        }
+      }
+      return { text, where };
+    };
+
+    // o texto e falado frase a frase: speechSynthesis.pause()/resume() nao funcionam de forma
+    // consistente entre navegadores, entao pausar cancela a fala e continuar repete a frase atual.
+    // Cada parte guarda onde comeca e termina no texto, para ser destacada na pagina
+    const MAX_CHUNK = 200;
+    const toChunks = (text) => {
+      const parts = [];
+      let last = 0;
+      for (const separator of text.matchAll(/\n+|(?<=[.!?…])\s+/g)) {
+        parts.push([last, separator.index]);
+        last = separator.index + separator[0].length;
+      }
+      parts.push([last, text.length]);
+
+      const chunks = [];
+      for (let [start, end] of parts) {
+        if (text[end - 1] === " ") end--;
+        while (end - start > MAX_CHUNK) {
+          let cut = text.lastIndexOf(" ", start + MAX_CHUNK);
+          if (cut <= start) cut = start + MAX_CHUNK;
+          chunks.push({ start, end: cut });
+          start = text[cut] === " " ? cut + 1 : cut;
+        }
+        if (end > start) chunks.push({ start, end });
+      }
+      return chunks;
+    };
+
+    // a frase sendo lida fica destacada e a palavra falada, sublinhada (CSS Custom Highlight API).
+    // Sem suporte no navegador, a leitura continua sem o destaque
+    const canHighlight = "highlights" in CSS && typeof Highlight === "function";
+    const highlight = (name, range) => {
+      if (!canHighlight) return;
+      if (range) CSS.highlights.set(name, new Highlight(range));
+      else CSS.highlights.delete(name);
+    };
+    const rangeOf = (start, end) => {
+      const first = reading.where[start];
+      const last = reading.where[end - 1];
+      if (end <= start || !first || !last) return null;
+      try {
+        const range = document.createRange();
+        range.setStart(first[0], first[1]);
+        range.setEnd(last[0], last[1] + 1);
+        return range;
+      } catch {
+        return null; // o texto da pagina mudou desde o inicio da leitura
+      }
+    };
+    // rola a pagina quando a frase lida esta fora da tela
+    const reveal = (range) => {
+      const box = range.getBoundingClientRect();
+      if ((!box.width && !box.height) || (box.top >= 0 && box.bottom <= window.innerHeight)) return;
+      const top = box.height > window.innerHeight / 2 ? box.top - 16 : box.top - window.innerHeight / 3;
+      window.scrollBy({ top });
+    };
 
     const halt = () => {
       run++;
@@ -235,6 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
       state = "idle";
       chunks = [];
       index = 0;
+      highlight("tts-sentence", null);
+      highlight("tts-word", null);
       render();
       announce(message);
     };
@@ -245,9 +357,26 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       const myRun = run;
-      current = new SpeechSynthesisUtterance(chunks[index]);
+      const { start: from, end: to } = chunks[index];
+      const sentence = rangeOf(from, to);
+      highlight("tts-sentence", sentence);
+      highlight("tts-word", null);
+      if (sentence) reveal(sentence);
+
+      current = new SpeechSynthesisUtterance(reading.text.slice(from, to));
       current.lang = "pt-BR";
       current.rate = rate;
+      // nem toda voz informa as palavras; sem isso, fica so o destaque da frase
+      current.onboundary = (event) => {
+        if (myRun !== run || event.name !== "word") return;
+        const at = from + event.charIndex;
+        let length = event.charLength;
+        if (!length) {
+          const space = reading.text.slice(at, to).search(/\s/);
+          length = space < 0 ? to - at : space;
+        }
+        highlight("tts-word", rangeOf(at, Math.min(at + length, to)));
+      };
       current.onend = () => {
         if (myRun !== run) return;
         index++;
@@ -262,17 +391,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const start = () => {
       halt();
-      chunks = toChunks(selectedText || (mainEl ? mainEl.innerText : document.body.innerText));
+      const fromSelection = !!selectedText;
+      let range = selectedRange;
+      if (!fromSelection) {
+        range = document.createRange();
+        range.selectNodeContents(mainEl || document.body);
+      }
+      reading = readableText(range);
+      chunks = toChunks(reading.text);
       index = 0;
       state = "playing";
+      // a selecao do navegador seria pintada por cima do destaque da leitura
+      if (fromSelection) window.getSelection().removeAllRanges();
       render();
-      announce(selectedText ? "Lendo o trecho selecionado" : "Lendo o conteúdo da página em voz alta");
+      announce(fromSelection ? "Lendo o trecho selecionado" : "Lendo o conteúdo da página em voz alta");
       speakCurrent();
     };
 
     const pause = () => {
       halt();
       state = "paused";
+      highlight("tts-word", null); // a frase continua destacada, mostrando onde a leitura parou
       render();
       announce("Leitura pausada");
     };
@@ -307,8 +446,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const sel = window.getSelection();
       if (mainEl && sel && !sel.isCollapsed && sel.rangeCount > 0 && sel.getRangeAt(0).intersectsNode(mainEl)) {
         selectedText = sel.toString().trim();
+        selectedRange = sel.getRangeAt(0).cloneRange();
       } else if (!isFormField(document.activeElement)) {
         selectedText = "";
+        selectedRange = null;
       }
       render();
     });
