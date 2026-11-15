@@ -22,10 +22,8 @@ function applyFontStep(index) {
   saveUserPreferences({ font_size: STEPS[index] });
 }
 
-// cada opcao do seletor de tema combina um tema de cores e o nivel de contraste
-function applyThemeOption(option) {
-  const theme = option.dataset.setTheme;
-  const contrast = option.dataset.setContrast;
+// aplica um tema de cores com o nivel de contraste ("normal" ou "high")
+function applyTheme(theme, contrast) {
   root.setAttribute("data-theme", theme);
   if (contrast === "high") {
     root.setAttribute("data-contrast", "high");
@@ -34,8 +32,20 @@ function applyThemeOption(option) {
   }
   localStorage.setItem("izone-theme", theme);
   localStorage.setItem("izone-contrast", contrast);
+  showTheme();
 
   saveUserPreferences({ theme: theme, contrast: contrast });
+}
+
+// mostra o tema atual na lista de temas ou, nas copias estaticas das paginas em
+// prototype/views (GitHub Pages), nos botoes C e ◐, que elas ainda usam
+function showTheme() {
+  const select = document.querySelector('[data-action="theme"]');
+  if (select) select.value = currentThemeOption(select).value;
+  const contrastBtn = document.querySelector('[data-action="toggle-contrast"]');
+  if (contrastBtn) contrastBtn.setAttribute("aria-pressed", root.getAttribute("data-contrast") === "high" ? "true" : "false");
+  const themeBtn = document.querySelector('[data-action="toggle-theme"]');
+  if (themeBtn) themeBtn.setAttribute("aria-pressed", root.getAttribute("data-theme") === "light" ? "true" : "false");
 }
 
 // a opcao que corresponde ao tema da pagina; "Amarelo no preto" e "Sepia" nao tem variante de contraste
@@ -49,7 +59,8 @@ function currentThemeOption(select) {
 }
 
 function saveUserPreferences(preferences) {
-  if (!window.user.is_authenticated) return;
+  // as paginas estaticas de prototype/views nao tem window.user
+  if (!window.user || !window.user.is_authenticated) return;
   
   fetch("/accounts/update-preferences", {
     method: "POST",
@@ -68,6 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const incBtn = document.querySelector('[data-action="font-increase"]');
   const decBtn = document.querySelector('[data-action="font-decrease"]');
   const themeSelect = document.querySelector('[data-action="theme"]');
+  const contrastBtn = document.querySelector('[data-action="toggle-contrast"]');
+  const themeBtn = document.querySelector('[data-action="toggle-theme"]');
   const ttsBtn = document.querySelector('[data-action="toggle-tts"]');
 
   if (incBtn) {
@@ -84,11 +97,30 @@ document.addEventListener("DOMContentLoaded", () => {
       announce("Tamanho da fonte: " + Math.round(STEPS[i] * 100) + "%");
     });
   }
-  // o leitor de tela ja fala a opcao escolhida na lista, entao a troca nao e anunciada de novo
+  // cada opcao da lista combina um tema e o contraste. O leitor de tela ja fala a opcao
+  // escolhida, entao a troca nao e anunciada de novo
   if (themeSelect) {
-    themeSelect.value = currentThemeOption(themeSelect).value;
-    themeSelect.addEventListener("change", () => applyThemeOption(themeSelect.selectedOptions[0]));
+    themeSelect.addEventListener("change", () => {
+      const option = themeSelect.selectedOptions[0];
+      applyTheme(option.dataset.setTheme, option.dataset.setContrast);
+    });
   }
+  // botoes C e ◐ das paginas estaticas; so os temas claro e escuro tem versao de alto contraste
+  if (contrastBtn) {
+    contrastBtn.addEventListener("click", () => {
+      const high = root.getAttribute("data-contrast") !== "high";
+      applyTheme(root.getAttribute("data-theme") === "light" ? "light" : "dark", high ? "high" : "normal");
+      announce(high ? "Alto contraste ativado" : "Alto contraste desativado");
+    });
+  }
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const light = root.getAttribute("data-theme") !== "light";
+      applyTheme(light ? "light" : "dark", root.getAttribute("data-contrast") === "high" ? "high" : "normal");
+      announce(light ? "Tema claro ativado" : "Tema escuro ativado");
+    });
+  }
+  showTheme();
 
   // ao criar uma conta, envia as preferencias atuais para que a conta ja comece com elas
   document.querySelectorAll("form[data-send-preferences]").forEach((form) => {

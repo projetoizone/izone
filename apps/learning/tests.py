@@ -418,6 +418,22 @@ class ThemeSelectorTests(TestCase):
                 self.assertContains(response, f"<strong>{label}:</strong>")
 
 
+class PrototypePagesTests(TestCase):
+    # prototype/views has static copies of the pages for GitHub Pages; they load
+    # public/js/accessibility.js and still use the C and ◐ buttons
+    def test_accessibility_script_handles_every_button_of_the_static_pages(self):
+        js = (settings.BASE_DIR / "public" / "js" / "accessibility.js").read_text()
+        pages = sorted((settings.BASE_DIR / "prototype" / "views").glob("*.html"))
+
+        self.assertTrue(pages)
+        for page in pages:
+            html = page.read_text()
+            self.assertIn("public/js/accessibility.js", html)
+            for action in set(re.findall(r'data-action="([^"]+)"', html)):
+                with self.subTest(page=page.name, action=action):
+                    self.assertIn(f"""'[data-action="{action}"]'""", js)
+
+
 class ZoomTests(TestCase):
     def test_accessibility_page_explains_browser_zoom(self):
         response = self.client.get(reverse("learning:acessibilidade"))
