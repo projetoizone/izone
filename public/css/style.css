@@ -79,9 +79,12 @@ a { color: var(--link); }
 ul { list-style: none; margin: 0; padding: 0; }
 
 /* Titulos */
-h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
-h3 { font-size: 1.375rem; font-weight: 700; margin: 1.75rem 0 0.75rem; }
-h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
+h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
+h2 { font-size: 1.375rem; font-weight: 700; margin: 1.75rem 0 0.75rem; }
+h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
+/* o jogo ja usava h1 e h2; mantem a aparencia que esses titulos tinham */
+.game h1 { font-weight: 700; letter-spacing: normal; margin: 0.67em 0; }
+.game h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
 .lede { font-size: 1.125rem; font-weight: 600; max-width: 62ch; margin: 0 0 1.75rem; }
 
 /* Utilitários */
@@ -239,7 +242,7 @@ h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 }
 a.card:hover, a.card:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 .card-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.card h3 { margin-top: 0; }
+.card h2, .card h3 { margin-top: 0; }
 .card-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 56px; height: 56px; font-size: 1.75rem;

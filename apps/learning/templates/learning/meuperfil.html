@@ -5,7 +5,7 @@
 
 {% block content %}
 <main id="conteudo-principal">
-  <h2 class="page-title">BEM-VINDO DE VOLTA, {{ request.user.username }}!</h2>
+  <h1 class="page-title">BEM-VINDO DE VOLTA, {{ request.user.username }}!</h1>
 
   <nav aria-label="Seções do perfil" style="margin-bottom:1.5rem;">
     <ul style="display:flex;gap:1rem;flex-wrap:wrap;">
@@ -16,57 +16,57 @@
   </nav>
 
   <section id="progresso" aria-labelledby="progresso-h">
-    <h3 id="progresso-h">Visão geral do progresso</h3>
+    <h2 id="progresso-h">Visão geral do progresso</h2>
     <div class="card-grid">
       <div class="card">
         <div class="progress-label"><span>Introdução à Programação</span><span>60%</span></div>
         <div class="progress-track"><div class="progress-fill" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso em Introdução à Programação" style="width:60%;"></div></div>
-        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar</a>
+        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar<span class="sr-only">: Introdução à Programação</span></a>
       </div>
       
       <div class="card">
         <div class="progress-label"><span>História do Brasil</span><span>10%</span></div>
         <div class="progress-track"><div class="progress-fill" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso em História do Brasil" style="width:10%;"></div></div>
-        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar</a>
+        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar<span class="sr-only">: História do Brasil</span></a>
       </div>
       
       <div class="card">
         <div class="progress-label"><span>Geografia Global</span><span>20%</span></div>
         <div class="progress-track"><div class="progress-fill" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso em Geografia Global" style="width:20%;"></div></div>
-        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar</a>
+        <a class="btn btn-primary" style="margin-top:0.75rem;" href="curso-detalhe.html">Continuar<span class="sr-only">: Geografia Global</span></a>
       </div>
     </div>
   </section>
 
   <section id="certificados" aria-labelledby="certificados-h" style="margin-top:2.5rem;">
-    <h3 id="certificados-h">Certificados e conquistas</h3>
+    <h2 id="certificados-h">Certificados e conquistas</h2>
     
     <div class="card-grid">
       <div class="card badge">
         <div class="badge-icon" aria-hidden="true">🥇</div>
-        <h4>Mestre de Python</h4>
+        <h3>Mestre de Python</h3>
         
-        <a class="btn btn-outline btn-block" href="certificado-mestre-python.pdf">Baixar certificado (PDF)</a>
+        <a class="btn btn-outline btn-block" href="certificado-mestre-python.pdf">Baixar certificado (PDF)<span class="sr-only">: Mestre de Python</span></a>
       </div>
       
       <div class="card badge">
         <div class="badge-icon" aria-hidden="true">🥈</div>
-        <h4>Explorador da História</h4>
+        <h3>Explorador da História</h3>
         
-        <a class="btn btn-outline btn-block" href="certificado-explorador-historia.pdf">Baixar certificado (PDF)</a>
+        <a class="btn btn-outline btn-block" href="certificado-explorador-historia.pdf">Baixar certificado (PDF)<span class="sr-only">: Explorador da História</span></a>
       </div>
       
       <div class="card badge">
         <div class="badge-icon" aria-hidden="true">🥉</div>
-        <h4>Especialista em Acessibilidade</h4>
+        <h3>Especialista em Acessibilidade</h3>
         
-        <a class="btn btn-outline btn-block" href="certificado-especialista-acessibilidade.pdf">Baixar certificado (PDF)</a>
+        <a class="btn btn-outline btn-block" href="certificado-especialista-acessibilidade.pdf">Baixar certificado (PDF)<span class="sr-only">: Especialista em Acessibilidade</span></a>
       </div>
     </div>
   </section>
 
   <section id="acessibilidade" aria-labelledby="acessibilidade-h" style="margin-top:2.5rem;">
-    <h3 id="acessibilidade-h">Configurações de acessibilidade</h3>
+    <h2 id="acessibilidade-h">Configurações de acessibilidade</h2>
     
     <form class="card" style="max-width:560px;" data-demo-message="Preferências salvas (simulação, back-end ainda não conectado).">
       <div class="field">

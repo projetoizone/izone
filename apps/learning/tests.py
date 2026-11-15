@@ -1,3 +1,4 @@
+import itertools
 import re
 from html.parser import HTMLParser
 
@@ -173,3 +174,61 @@ class DecorativeSymbolsTests(TestCase):
         response = self.client.get(reverse("learning:tutoriais"))
 
         self.assertContains(response, '<span class="sr-only">Duração:</span>', count=4)
+
+
+def strip_tags(html):
+    html = re.sub(
+        r'<(\w+)[^>]*aria-hidden="true"[^>]*>.*?</\1>', "", html, flags=re.DOTALL
+    )
+    return " ".join(re.sub(r"<[^>]+>", " ", html).split())
+
+
+class ScreenReaderStructureTests(TestCase):
+    def pages(self):
+        for name in PAGES:
+            yield name, self.client.get(reverse(name)).content.decode()
+        self.client.force_login(User.objects.create_user(username="ana"))
+        yield (
+            "learning:meuperfil",
+            self.client.get(reverse("learning:meuperfil")).content.decode(),
+        )
+
+    def test_every_page_has_one_h1_and_no_skipped_heading_levels(self):
+        for name, html in self.pages():
+            with self.subTest(page=name):
+                levels = [int(level) for level in re.findall(r"<h([1-6])\b", html)]
+
+                self.assertEqual(levels.count(1), 1)
+                self.assertEqual(levels[0], 1)
+                for previous, level in itertools.pairwise(levels):
+                    self.assertLessEqual(level, previous + 1)
+
+    def test_accessible_names_start_with_the_visible_text(self):
+        # WCAG 2.5.3: someone using voice control says what they see
+        pattern = r'<(a|button)\b([^>]*\baria-label="([^"]+)"[^>]*)>(.*?)</\1>'
+        for name, html in self.pages():
+            for _, _, label, content in re.findall(pattern, html, flags=re.DOTALL):
+                visible = strip_tags(content)
+                if re.search(r"\w", visible):
+                    with self.subTest(page=name, visible=visible):
+                        self.assertTrue(
+                            label.lower().startswith(visible.lower()), label
+                        )
+
+    def test_links_in_the_main_content_have_distinct_names(self):
+        for name, html in self.pages():
+            with self.subTest(page=name):
+                main = html[html.index("<main") : html.index("</main>")]
+                names = [
+                    strip_tags(link)
+                    for link in re.findall(r"<a\b.*?</a>", main, flags=re.DOTALL)
+                ]
+
+                repeated = {n for n in names if names.count(n) > 1}
+                self.assertEqual(repeated, set())
+
+    def test_the_community_sidebar_is_named_by_its_heading(self):
+        html = self.client.get(reverse("learning:comunidade")).content.decode()
+
+        self.assertIn('<aside class="card" aria-labelledby="populares-h">', html)
+        self.assertIn('id="populares-h"', html)
