@@ -15,3 +15,12 @@ class GameViewTests(TestCase):
         self.assertTemplateUsed(response, "base.html")
         self.assertContains(response, 'data-action="toggle-contrast"')
         self.assertContains(response, "js/game.js")
+
+    def test_braille_display_label_is_announced(self):
+        response = self.client.get(reverse("spelling:game"))
+
+        # aria-label is ignored on a plain div; the group role makes it announced
+        self.assertRegex(
+            response.content.decode(),
+            r'id="braille-display"[^>]*role="group"[^>]*aria-label="[^"]+"',
+        )

@@ -85,6 +85,7 @@ function renderBraille(word) {
       // ainda não suportados.
       const unsupported = document.createElement("span");
       unsupported.textContent = character;
+      unsupported.setAttribute("role", "img");
       unsupported.setAttribute("aria-label",
         `${character}: representação Braille indisponível`);
       display.appendChild(unsupported);
