@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 class Theme(models.TextChoices):
     LIGHT = "light", _("Light Mode")
     DARK = "dark", _("Dark Mode")
+    YELLOW = "yellow", _("Yellow on Black")
+    SEPIA = "sepia", _("Sepia")
 
 
 class Contrast(models.TextChoices):

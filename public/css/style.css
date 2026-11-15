@@ -35,6 +35,7 @@
   --text-muted: #4a4a4a;
   --link: #8a6900;
   --focus-ring: #0a5fb4;
+  --danger: #b3261e;
   --reading-bg: var(--text);   /* o amarelo quase nao se destaca do fundo claro */
   --reading-text: var(--accent);
 }
@@ -67,6 +68,36 @@
   --reading-text: var(--accent-ink);
 }
 
+/* Amarelo no preto: texto amarelo e links brancos sobre preto */
+:root[data-theme="yellow"] {
+  --bg: #000000;
+  --bg-elevated: #000000;
+  --bg-input: #000000;
+  --border: #ffff00;
+  --accent: #ffff00;
+  --accent-ink: #000000;
+  --text: #ffff00;
+  --text-muted: #ffff00;
+  --link: #ffffff;
+  --focus-ring: #00e5ff;
+  --danger: #ff8a80;
+}
+
+/* Sepia: contraste suave, marrom-escuro sobre bege, com menos brilho que o branco */
+:root[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --bg-elevated: #faf4e6;
+  --bg-input: #fffaf0;
+  --border: #7a5c3a;
+  --accent: #5b4636;
+  --accent-ink: #faf4e6;
+  --text: #3b2f20;
+  --text-muted: #5c4a36;
+  --link: #7a3b12;
+  --focus-ring: #1d5aa6;
+  --danger: #a3271f;
+}
+
 /* Reset */
 *, *::before, *::after { box-sizing: border-box; }
 html { font-size: calc(100% * var(--fs-step)); scroll-behavior: smooth; }
@@ -84,6 +115,8 @@ body {
 }
 img { max-width: 100%; display: block; }
 a { color: var(--link); }
+/* links no meio do texto sao sublinhados: so a cor nao basta para distingui-los (WCAG 1.4.1) */
+main a:not(.btn, .card), .site-footer a { text-decoration: underline; text-underline-offset: 0.15em; }
 ul { list-style: none; margin: 0; padding: 0; }
 
 /* Titulos */
@@ -151,9 +184,10 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 }
 .a11y-btn[aria-pressed="true"], .a11y-btn.is-active { background: var(--accent); color: var(--accent-ink); }
 .a11y-btn[hidden] { display: none; }
-.a11y-speed { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; }
-.a11y-speed select {
-  max-width: 100%; min-height: 44px; padding: 0 0.5rem; /* WCAG 2.5.8 */
+.a11y-field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-width: 0; max-width: 100%; font-weight: 700; font-size: 0.95rem; }
+.a11y-field select {
+  min-width: 0; max-width: 100%; /* em telas estreitas com fonte grande, a lista encolhe em vez de vazar */
+  min-height: 44px; padding: 0 0.5rem; /* WCAG 2.5.8 */
   background: var(--bg-input); color: var(--text);
   border: 2px solid var(--border); border-radius: 8px; font: inherit;
 }
@@ -186,8 +220,8 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
   text-decoration: none; color: var(--text); font-weight: 700;
   letter-spacing: 0.02em;
 }
-.main-nav a:hover { color: var(--accent); }
-.main-nav a[aria-current="page"] { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.main-nav a:hover { color: var(--link); }
+.main-nav a[aria-current="page"] { color: var(--link); text-decoration: underline; text-underline-offset: 4px; }
 
 .nav-container {
   display: flex;
@@ -225,7 +259,7 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 }
 
 .nav-logout-btn:hover, .nav-logout-btn:focus-visible {
-  color: var(--accent);
+  color: var(--link);
 }
 
 /* Autenticação (signup/login) */
@@ -319,14 +353,15 @@ kbd {
 .site-footer { border-top: 1px solid var(--border); margin-top: 3rem; padding: 1.5rem var(--gutter); text-align: center; color: var(--text-muted); }
 .site-footer nav ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 0.9rem; margin-bottom: 0.75rem; }
 .site-footer a { color: var(--text-muted); }
-.site-footer a:hover { color: var(--accent); }
+.site-footer a:hover { color: var(--link); }
 
 /* Layout */
 main { padding: 2rem var(--gutter); max-width: var(--max-width); margin: 0 auto; }
 .page-title { margin-bottom: 1.5rem; }
 
 @media (max-width: 640px) {
-  .header-bar { flex-direction: column; align-items: stretch; }
+  /* sem quebra de linha, a coluna tem a largura da tela e nao a do item mais largo */
+  .header-bar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
   .search-field { flex: none; } /* na coluna, o flex-basis viraria altura */
   .main-nav ul { justify-content: center; }
   .main-nav a, .nav-logout-btn { padding: 0.75rem 0.9rem; }

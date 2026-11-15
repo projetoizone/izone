@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from apps.accounts.enums import Contrast, Theme
+
 User = get_user_model()
 PASSWORD = "Senha-forte-123"
 
@@ -255,9 +257,12 @@ class ReadAloudSpeedTests(TestCase):
         self.assertContains(response, '<th scope="row">Velocidade</th>')
 
 
+STYLE_CSS = settings.BASE_DIR / "public" / "css" / "style.css"
+
+
 def css_themes():
     """The custom properties of each theme in style.css, with var() resolved."""
-    css = (settings.BASE_DIR / "public" / "css" / "style.css").read_text()
+    css = STYLE_CSS.read_text()
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
     blocks = {
         selector.strip(): dict(re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body))
@@ -271,6 +276,8 @@ def css_themes():
         "light": (":root", light),
         "high contrast": (":root", high),
         "light high contrast": (":root", light, high, light + '[data-contrast="high"]'),
+        "yellow": (":root", ':root[data-theme="yellow"]'),
+        "sepia": (":root", ':root[data-theme="sepia"]'),
     }
     themes = {}
     for theme, selectors in layers.items():
@@ -311,7 +318,7 @@ class ReadAloudHighlightTests(TestCase):
                 )
 
     def test_script_and_stylesheet_use_the_same_highlights(self):
-        css = (settings.BASE_DIR / "public" / "css" / "style.css").read_text()
+        css = STYLE_CSS.read_text()
         js = (settings.BASE_DIR / "public" / "js" / "accessibility.js").read_text()
 
         self.assertRegex(
@@ -330,6 +337,85 @@ class ReadAloudHighlightTests(TestCase):
         self.assertContains(
             response, "A frase que está sendo lida fica destacada na tela"
         )
+
+
+class ThemeSelectorTests(TestCase):
+    option = re.compile(
+        r'<option value="([^"]+)" data-set-theme="([^"]+)" '
+        r'data-set-contrast="([^"]+)">([^<]+)</option>'
+    )
+
+    def options(self):
+        html = self.client.get(reverse("learning:home")).content.decode()
+        return self.option.findall(html)
+
+    def test_every_page_has_a_labelled_theme_list(self):
+        for name in PAGES:
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+
+                self.assertContains(response, '<label for="a11y-tema">Tema</label>')
+                self.assertContains(
+                    response, '<select id="a11y-tema" data-action="theme">'
+                )
+                self.assertNotContains(response, 'data-action="toggle-contrast"')
+                self.assertNotContains(response, 'data-action="toggle-theme"')
+
+    def test_offers_six_themes_that_can_be_saved(self):
+        options = self.options()
+
+        self.assertEqual(len(options), 6)
+        self.assertEqual(
+            len({(theme, contrast) for _, theme, contrast, _ in options}), 6
+        )
+        for value, theme, contrast, label in options:
+            with self.subTest(option=label):
+                self.assertIn(theme, Theme.values)
+                self.assertIn(contrast, Contrast.values)
+
+    def test_every_theme_has_colours(self):
+        css = STYLE_CSS.read_text()
+
+        for _, theme, contrast, label in self.options():
+            with self.subTest(option=label):
+                selector = ":root"
+                if theme != "dark":
+                    selector += f'[data-theme="{theme}"]'
+                if contrast == "high":
+                    selector += '[data-contrast="high"]'
+                self.assertIn(selector + " {", css)
+
+    def test_colours_meet_wcag_contrast_in_every_theme(self):
+        text = [("--text", bg) for bg in ("--bg", "--bg-elevated", "--bg-input")]
+        text += [
+            (fg, bg)
+            for fg in ("--text-muted", "--link", "--danger")
+            for bg in ("--bg", "--bg-elevated")
+        ]
+        text += [("--accent-ink", "--accent")]
+        # borders of fields and cards, and the focus outline (WCAG 1.4.11)
+        ui = [("--border", bg) for bg in ("--bg", "--bg-elevated", "--bg-input")]
+        ui += [("--focus-ring", bg) for bg in ("--bg", "--bg-elevated")]
+
+        for theme, props in css_themes().items():
+            for pairs, minimum in ((text, 4.5), (ui, 3)):
+                for fg, bg in pairs:
+                    with self.subTest(theme=theme, colours=f"{fg} on {bg}"):
+                        self.assertGreaterEqual(contrast(props[fg], props[bg]), minimum)
+
+    def test_links_in_text_are_underlined(self):
+        # in most themes links differ from the text by colour alone (WCAG 1.4.1)
+        self.assertRegex(
+            STYLE_CSS.read_text(),
+            r"main a:not\(\.btn, \.card\), \.site-footer a \{ text-decoration: underline;",
+        )
+
+    def test_accessibility_page_describes_every_theme(self):
+        response = self.client.get(reverse("learning:acessibilidade"))
+
+        for _, _, _, label in self.options():
+            with self.subTest(option=label):
+                self.assertContains(response, f"<strong>{label}:</strong>")
 
 
 class ZoomTests(TestCase):
