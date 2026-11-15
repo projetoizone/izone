@@ -11,9 +11,9 @@
     <button type="button" class="btn btn-primary" data-demo-message="Tópico criado (simulação, back-end ainda não conectado).">Criar novo tópico</button>
   </div>
 
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;margin-top:1rem;">
+  <div class="with-sidebar" style="margin-top:1rem;--sidebar-width:23.5rem;">
     
-    <div class="card-grid">
+    <div class="card-grid not-sidebar">
       <a class="card" href="topico.html" style="text-decoration:none;color:inherit;">
         <h2>Dúvidas Gerais</h2>
         
@@ -45,7 +45,7 @@
       </a>
     </div>
 
-    <aside class="card" aria-labelledby="populares-h">
+    <aside class="card sidebar" aria-labelledby="populares-h">
       <h2 id="populares-h" style="margin-top:0;">Tópicos mais populares</h2>
       
       <ol>
