@@ -104,6 +104,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ao criar uma conta, envia as preferencias atuais para que a conta ja comece com elas
+  document.querySelectorAll("form[data-send-preferences]").forEach((form) => {
+    form.addEventListener("submit", () => {
+      const current = {
+        theme: root.getAttribute("data-theme") === "light" ? "light" : "dark",
+        contrast: root.getAttribute("data-contrast") === "high" ? "high" : "normal",
+        font_size: String(STEPS[getStepIndex()]),
+      };
+      for (const [name, value] of Object.entries(current)) {
+        let input = form.querySelector(`input[type="hidden"][name="${name}"]`);
+        if (!input) {
+          input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          form.append(input);
+        }
+        input.value = value;
+      }
+    });
+  });
+
   // ler a pagina (ou o trecho selecionado) em voz alta, com pausar, continuar e parar
   if (ttsBtn && "speechSynthesis" in window) {
     const mainEl = document.querySelector("main");
