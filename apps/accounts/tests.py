@@ -1,13 +1,31 @@
 import json
+import re
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.html import escape
 
 from .models import UserPreferences
 
 User = get_user_model()
 PASSWORD = "Senha-forte-123"
+
+
+class FieldErrorAssertions:
+    def assertFieldErrorsShown(self, response, *fields):
+        form = response.context["form"]
+        for field in fields:
+            self.assertTrue(form[field].errors, f"{field} has no errors")
+            for error in form[field].errors:
+                self.assertContains(response, escape(error))
+
+    def assertDescribedByTargetsExist(self, response):
+        html = response.content.decode()
+        ids = re.findall(r'aria-describedby="([^"]+)"', html)
+        self.assertTrue(ids)
+        for target in " ".join(ids).split():
+            self.assertIn(f'id="{target}"', html)
 
 
 class UserPreferencesSignalTests(TestCase):
@@ -19,21 +37,14 @@ class UserPreferencesSignalTests(TestCase):
         self.assertEqual(preferences.contrast, "normal")
         self.assertEqual(preferences.font_size, 1.0)
 
-    def test_saving_a_user_saves_its_preferences(self):
+    def test_saving_a_user_does_not_overwrite_newer_preferences(self):
+        # user.preferences still holds the defaults cached when the user was created
         user = User.objects.create_user(username="ana", password=PASSWORD)
-        user.preferences.theme = "light"
+        UserPreferences.objects.filter(user=user).update(theme="light")
+
         user.save()
 
         self.assertEqual(UserPreferences.objects.get(user=user).theme, "light")
-
-    def test_saving_a_user_without_preferences_does_not_fail(self):
-        user = User.objects.create_user(username="ana", password=PASSWORD)
-        UserPreferences.objects.filter(user=user).delete()
-
-        user = User.objects.get(pk=user.pk)
-        user.save()
-
-        self.assertFalse(UserPreferences.objects.filter(user=user).exists())
 
 
 class UserPreferencesContextProcessorTests(TestCase):
@@ -170,7 +181,7 @@ class UpdatePreferencesViewTests(TestCase):
         self.assertEqual(response.status_code, 405)
 
 
-class SignUpViewTests(TestCase):
+class SignUpViewTests(FieldErrorAssertions, TestCase):
     url = reverse("accounts:signup")
 
     def test_renders_the_form(self):
@@ -228,11 +239,21 @@ class SignUpViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context["form"].errors)
+        self.assertFieldErrorsShown(response, "password2")
         self.assertFalse(User.objects.filter(username="ana").exists())
 
+    def test_every_password_error_is_shown_and_linked_to_its_field(self):
+        response = self.client.post(
+            self.url, {"username": "ana", "password1": "123", "password2": "123"}
+        )
 
-class LogInOutViewTests(TestCase):
+        self.assertGreater(len(response.context["form"]["password2"].errors), 1)
+        self.assertFieldErrorsShown(response, "password2")
+        self.assertContains(response, 'aria-invalid="true"')
+        self.assertDescribedByTargetsExist(response)
+
+
+class LogInOutViewTests(FieldErrorAssertions, TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="ana", password=PASSWORD)
 
@@ -249,6 +270,15 @@ class LogInOutViewTests(TestCase):
 
         self.assertRedirects(response, reverse("learning:home"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
+
+    def test_empty_fields_show_their_errors(self):
+        response = self.client.post(
+            reverse("accounts:login"), {"username": "", "password": ""}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFieldErrorsShown(response, "username", "password")
+        self.assertDescribedByTargetsExist(response)
 
     def test_wrong_password_is_rejected(self):
         response = self.client.post(
@@ -291,9 +321,7 @@ class SavedPreferencesTests(TestCase):
     def test_every_page_applies_the_account_preferences(self):
         update = {"theme": "light", "contrast": "high", "font_size": 1.5}
         UserPreferences.objects.filter(user=self.user).update(**update)
-        # log in with a fresh instance: logging in saves the user, and the post_save
-        # signal would also save the old preferences cached on self.user
-        self.client.force_login(User.objects.get(pk=self.user.pk))
+        self.client.force_login(self.user)
 
         for name in self.pages:
             with self.subTest(page=name):
