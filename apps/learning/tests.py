@@ -2,6 +2,7 @@ import itertools
 import re
 from html.parser import HTMLParser
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -252,6 +253,83 @@ class ReadAloudSpeedTests(TestCase):
         response = self.client.get(reverse("learning:acessibilidade"))
 
         self.assertContains(response, '<th scope="row">Velocidade</th>')
+
+
+def css_themes():
+    """The custom properties of each theme in style.css, with var() resolved."""
+    css = (settings.BASE_DIR / "public" / "css" / "style.css").read_text()
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+    blocks = {
+        selector.strip(): dict(re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body))
+        for selector, body in re.findall(
+            r"^(:root[^{]*)\{([^}]*)\}", css, flags=re.MULTILINE
+        )
+    }
+    light, high = ':root[data-theme="light"]', ':root[data-contrast="high"]'
+    layers = {
+        "dark": (":root",),
+        "light": (":root", light),
+        "high contrast": (":root", high),
+        "light high contrast": (":root", light, high, light + '[data-contrast="high"]'),
+    }
+    themes = {}
+    for theme, selectors in layers.items():
+        props = {}
+        for selector in selectors:
+            props.update(blocks[selector])
+        for name, value in props.items():
+            while value.startswith("var("):
+                value = props[value[4:-1]]
+            props[name] = value
+        themes[theme] = props
+    return themes
+
+
+def contrast(color, other):
+    def luminance(hex_color):
+        channels = [int(hex_color[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+        r, g, b = (
+            c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+            for c in channels
+        )
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    lighter, darker = sorted((luminance(color), luminance(other)), reverse=True)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+class ReadAloudHighlightTests(TestCase):
+    def test_highlight_is_readable_and_stands_out_in_every_theme(self):
+        for theme, props in css_themes().items():
+            with self.subTest(theme=theme):
+                # WCAG 1.4.3 for the text being read, 1.4.11 for the highlight against the page
+                self.assertGreaterEqual(
+                    contrast(props["--reading-text"], props["--reading-bg"]), 4.5
+                )
+                self.assertGreaterEqual(
+                    contrast(props["--reading-bg"], props["--bg"]), 3
+                )
+
+    def test_script_and_stylesheet_use_the_same_highlights(self):
+        css = (settings.BASE_DIR / "public" / "css" / "style.css").read_text()
+        js = (settings.BASE_DIR / "public" / "js" / "accessibility.js").read_text()
+
+        self.assertRegex(
+            css,
+            r"::highlight\(tts-sentence\) \{ background-color: var\(--reading-bg\); "
+            r"color: var\(--reading-text\);",
+        )
+        for name in ("tts-sentence", "tts-word"):
+            with self.subTest(highlight=name):
+                self.assertIn(f"::highlight({name})", css)
+                self.assertIn(f'highlight("{name}"', js)
+
+    def test_accessibility_page_documents_the_highlight(self):
+        response = self.client.get(reverse("learning:acessibilidade"))
+
+        self.assertContains(
+            response, "A frase que está sendo lida fica destacada na tela"
+        )
 
 
 class ZoomTests(TestCase):
