@@ -19,21 +19,14 @@ class UserPreferencesSignalTests(TestCase):
         self.assertEqual(preferences.contrast, "normal")
         self.assertEqual(preferences.font_size, 1.0)
 
-    def test_saving_a_user_saves_its_preferences(self):
+    def test_saving_a_user_does_not_overwrite_newer_preferences(self):
+        # user.preferences still holds the defaults cached when the user was created
         user = User.objects.create_user(username="ana", password=PASSWORD)
-        user.preferences.theme = "light"
+        UserPreferences.objects.filter(user=user).update(theme="light")
+
         user.save()
 
         self.assertEqual(UserPreferences.objects.get(user=user).theme, "light")
-
-    def test_saving_a_user_without_preferences_does_not_fail(self):
-        user = User.objects.create_user(username="ana", password=PASSWORD)
-        UserPreferences.objects.filter(user=user).delete()
-
-        user = User.objects.get(pk=user.pk)
-        user.save()
-
-        self.assertFalse(UserPreferences.objects.filter(user=user).exists())
 
 
 class UserPreferencesContextProcessorTests(TestCase):
@@ -291,9 +284,7 @@ class SavedPreferencesTests(TestCase):
     def test_every_page_applies_the_account_preferences(self):
         update = {"theme": "light", "contrast": "high", "font_size": 1.5}
         UserPreferences.objects.filter(user=self.user).update(**update)
-        # log in with a fresh instance: logging in saves the user, and the post_save
-        # signal would also save the old preferences cached on self.user
-        self.client.force_login(User.objects.get(pk=self.user.pk))
+        self.client.force_login(self.user)
 
         for name in self.pages:
             with self.subTest(page=name):
