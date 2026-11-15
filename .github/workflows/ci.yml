@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Check the project
+        run: uv run python manage.py check
+
+      - name: Check that migrations are up to date
+        run: uv run python manage.py makemigrations --check --dry-run
+
+      - name: Run tests
+        id: tests
+        run: uv run coverage run manage.py test --verbosity 2
+
+      - name: Write the coverage summary
+        if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
+        run: |
+          {
+            echo "## Coverage"
+            echo
+            uv run coverage report --format=markdown
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build the HTML coverage report
+        if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
+        run: uv run coverage html
+
+      - name: Upload the HTML coverage report
+        if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: htmlcov/

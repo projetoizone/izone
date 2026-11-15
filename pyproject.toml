@@ -5,3 +5,27 @@ requires-python = ">=3.13"
 dependencies = [
     "django>=6.1.2",
 ]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.17",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["apps", "config"]
+omit = [
+    "*/migrations/*",
+    "*/tests.py",
+    "*/tests/*",
+    "config/asgi.py",
+    "config/wsgi.py",
+]
+relative_files = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
+[tool.coverage.html]
+title = "iZone coverage"
