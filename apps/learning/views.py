@@ -26,3 +26,7 @@ class ComunidadeView(TemplateView):
 
 class MeuPerfilView(LoginRequiredMixin, TemplateView):
     template_name = "learning/meuperfil.html"
+
+
+class AcessibilidadeView(TemplateView):
+    template_name = "learning/acessibilidade.html"

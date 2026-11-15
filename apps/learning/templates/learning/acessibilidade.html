@@ -1,0 +1,87 @@
+{% extends 'learning/base.html' %}
+{% load static %}
+
+{% block title %}Acessibilidade{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h2 class="page-title">ACESSIBILIDADE</h2>
+
+  <p class="lede">O iZone pode ser usado só com o teclado, com leitores de tela e com ajustes de fonte, contraste e tema. Esta página explica como navegar pelo site e como usar esses recursos.</p>
+
+  <nav class="section-nav" aria-label="Seções desta página">
+    <ul>
+      <li><a class="btn btn-outline" href="#teclado">Navegação pelo teclado</a></li>
+      <li><a class="btn btn-outline" href="#leitores-de-tela">Leitores de tela</a></li>
+      <li><a class="btn btn-outline" href="#barra-de-acessibilidade">Barra de acessibilidade</a></li>
+      <li><a class="btn btn-outline" href="#atalhos">Atalhos de teclado</a></li>
+    </ul>
+  </nav>
+
+  <section id="teclado" aria-labelledby="teclado-h">
+    <h3 id="teclado-h">Navegação pelo teclado</h3>
+
+    <p>Em qualquer página, a primeira vez que você pressiona <kbd>Tab</kbd> aparece o link <strong>Pular para o conteúdo principal</strong>. Pressione <kbd>Enter</kbd> nele para ir direto ao conteúdo, sem passar pelo cabeçalho e pelo menu.</p>
+
+    <table class="key-table">
+      <caption class="sr-only">Teclas para navegar pelo site</caption>
+      <thead>
+        <tr><th scope="col">Tecla</th><th scope="col">O que faz</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row"><kbd>Tab</kbd></th><td>Vai para o próximo link, botão ou campo.</td></tr>
+        <tr><th scope="row"><kbd>Shift</kbd> + <kbd>Tab</kbd></th><td>Volta para o elemento anterior.</td></tr>
+        <tr><th scope="row"><kbd>Enter</kbd></th><td>Abre um link ou aciona um botão.</td></tr>
+        <tr><th scope="row"><kbd>Espaço</kbd></th><td>Aciona um botão ou marca uma caixa de seleção.</td></tr>
+        <tr><th scope="row">Setas</th><td>Trocam a opção em listas de seleção e movem controles deslizantes.</td></tr>
+      </tbody>
+    </table>
+
+    <p>O elemento em foco fica sempre destacado por um contorno. A ordem do <kbd>Tab</kbd> segue a ordem da página: logotipo, barra de acessibilidade, pesquisa, menu principal, conteúdo e rodapé.</p>
+  </section>
+
+  <section id="leitores-de-tela" aria-labelledby="leitores-de-tela-h">
+    <h3 id="leitores-de-tela-h">Leitores de tela</h3>
+
+    <p>Cada página é dividida em regiões identificadas, como o cabeçalho, a pesquisa, o menu principal, o conteúdo principal e o rodapé, para que você possa saltar direto para a que procura. Dentro do conteúdo, títulos separam as seções.</p>
+
+    <ul class="doc-list">
+      <li><strong>NVDA:</strong> <kbd>D</kbd> vai para a próxima região e <kbd>H</kbd> para o próximo título.</li>
+      <li><strong>JAWS:</strong> <kbd>R</kbd> vai para a próxima região e <kbd>H</kbd> para o próximo título.</li>
+      <li><strong>VoiceOver (macOS):</strong> <kbd>Control</kbd> + <kbd>Option</kbd> + <kbd>U</kbd> abre o rotor, com a lista de regiões e de títulos.</li>
+    </ul>
+
+    <p>Mudanças feitas pela barra de acessibilidade, como “Tamanho da fonte: 120%” ou “Leitura pausada”, são anunciadas automaticamente.</p>
+  </section>
+
+  <section id="barra-de-acessibilidade" aria-labelledby="barra-de-acessibilidade-h">
+    <h3 id="barra-de-acessibilidade-h">Barra de acessibilidade</h3>
+
+    <p>A barra fica no topo das páginas, logo depois do logotipo.</p>
+
+    <table class="key-table">
+      <caption class="sr-only">Botões da barra de acessibilidade</caption>
+      <thead>
+        <tr><th scope="col">Botão</th><th scope="col">O que faz</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">A+</th><td>Aumenta a fonte em 10%, até 200%. Leitores de tela anunciam este botão como “Aumentar tamanho da fonte”.</td></tr>
+        <tr><th scope="row">A-</th><td>Diminui a fonte em 10%, até 100%. Anunciado como “Diminuir tamanho da fonte”.</td></tr>
+        <tr><th scope="row">C</th><td>Liga ou desliga o alto contraste. Anunciado como “Alternar alto contraste”.</td></tr>
+        <tr><th scope="row"><span aria-hidden="true">◐</span><span class="sr-only">Tema</span></th><td>Alterna entre o tema escuro e o claro, e pode ser combinado com o alto contraste. Anunciado como “Alternar tema claro/escuro”.</td></tr>
+        <tr><th scope="row">Ouvir página</th><td>Lê em voz alta o conteúdo principal. Se você selecionar um trecho do conteúdo antes, o botão passa a se chamar “Ouvir trecho” e lê só a seleção.</td></tr>
+        <tr><th scope="row">Pausar leitura e Continuar leitura</th><td>Durante a leitura, o mesmo botão pausa e retoma. Ao continuar, a frase interrompida é lida de novo desde o começo.</td></tr>
+        <tr><th scope="row">Parar leitura</th><td>Aparece ao lado durante a leitura e a encerra.</td></tr>
+      </tbody>
+    </table>
+
+    <p>As escolhas de fonte, contraste e tema ficam salvas neste navegador. Se você estiver conectado à sua conta, elas também ficam salvas nela.</p>
+  </section>
+
+  <section id="atalhos" aria-labelledby="atalhos-h">
+    <h3 id="atalhos-h">Atalhos de teclado</h3>
+
+    <p>O iZone não cria atalhos de teclado próprios. Todos os recursos são links e botões comuns, usados com <kbd>Tab</kbd>, <kbd>Enter</kbd> e <kbd>Espaço</kbd>. Assim, os atalhos do navegador e do leitor de tela continuam funcionando sem conflitos.</p>
+  </section>
+</main>
+{% endblock %}
