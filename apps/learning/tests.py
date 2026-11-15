@@ -232,3 +232,23 @@ class ScreenReaderStructureTests(TestCase):
 
         self.assertIn('<aside class="card" aria-labelledby="populares-h">', html)
         self.assertIn('id="populares-h"', html)
+
+
+class ReadAloudSpeedTests(TestCase):
+    def test_profile_slider_uses_the_same_speeds_as_the_accessibility_bar(self):
+        # accessibility.js offers 0.5x to 2x in steps of 0.25
+        self.client.force_login(User.objects.create_user(username="ana"))
+
+        response = self.client.get(reverse("learning:meuperfil"))
+
+        self.assertContains(
+            response,
+            'type="range" id="pref-velocidade" name="velocidade" min="0.5" max="2" '
+            'step="0.25" value="1" aria-valuetext="1x"',
+        )
+        self.assertContains(response, 'id="pref-velocidade-valor" aria-hidden="true"')
+
+    def test_accessibility_page_documents_the_speed_control(self):
+        response = self.client.get(reverse("learning:acessibilidade"))
+
+        self.assertContains(response, '<th scope="row">Velocidade</th>')

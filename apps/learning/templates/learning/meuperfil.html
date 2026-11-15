@@ -71,7 +71,8 @@
     <form class="card" style="max-width:560px;" data-demo-message="Preferências salvas (simulação, back-end ainda não conectado).">
       <div class="field">
         <label for="pref-velocidade">Velocidade da leitura em voz alta</label>
-        <input type="range" id="pref-velocidade" name="velocidade" min="0.5" max="2" step="0.1" value="1">
+        <input type="range" id="pref-velocidade" name="velocidade" min="0.5" max="2" step="0.25" value="1" aria-valuetext="1x">
+        <span id="pref-velocidade-valor" aria-hidden="true">1x</span>
       </div>
       
       <div class="checkbox-field" style="margin-bottom:0.9rem;">
