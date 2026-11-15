@@ -143,6 +143,42 @@ document.addEventListener("DOMContentLoaded", () => {
     ttsBtn.removeAttribute("aria-pressed"); // o rotulo muda com o estado, entao nao e um botao de alternancia
     ttsBtn.after(stopBtn);
 
+    // velocidade da leitura, de 0,5x a 2x; fica salva neste navegador
+    const RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    const formatRate = (value) => String(value).replace(".", ",") + "x";
+    const savedRate = parseFloat(localStorage.getItem("izone-tts-rate"));
+    let rate = RATES.includes(savedRate) ? savedRate : 1;
+
+    const speedLabel = document.createElement("label");
+    speedLabel.className = "a11y-speed";
+    const speedText = document.createElement("span");
+    speedText.textContent = "Velocidade";
+    const speedSelect = document.createElement("select");
+    speedSelect.dataset.action = "tts-rate";
+    speedSelect.setAttribute("aria-label", "Velocidade da leitura"); // contem o texto visivel (WCAG 2.5.3)
+    for (const value of RATES) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value === 1 ? "1x (normal)" : formatRate(value);
+      speedSelect.append(option);
+    }
+    speedLabel.append(speedText, speedSelect);
+    stopBtn.after(speedLabel);
+
+    // o perfil tem um controle deslizante para a mesma velocidade
+    const profileSlider = document.getElementById("pref-velocidade");
+    const profileOutput = document.getElementById("pref-velocidade-valor");
+
+    const showRate = () => {
+      speedSelect.value = String(rate);
+      if (profileSlider) {
+        profileSlider.value = String(rate);
+        profileSlider.setAttribute("aria-valuetext", formatRate(rate));
+      }
+      if (profileOutput) profileOutput.textContent = formatRate(rate);
+    };
+    showRate();
+
     // o nome acessivel e o proprio texto visivel (WCAG 2.5.3); o icone fica oculto do leitor de tela
     const setLabel = (btn, icon, text, ariaLabel) => {
       const key = icon + text + (ariaLabel || "");
@@ -211,6 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const myRun = run;
       current = new SpeechSynthesisUtterance(chunks[index]);
       current.lang = "pt-BR";
+      current.rate = rate;
       current.onend = () => {
         if (myRun !== run) return;
         index++;
@@ -247,6 +284,20 @@ document.addEventListener("DOMContentLoaded", () => {
       speakCurrent();
     };
 
+    // uma fala nao muda de velocidade no meio, entao a frase atual recomeca na nova velocidade
+    const setRate = (value) => {
+      const next = parseFloat(value);
+      if (RATES.includes(next) && next !== rate) {
+        rate = next;
+        localStorage.setItem("izone-tts-rate", String(rate));
+        if (state === "playing") {
+          halt();
+          speakCurrent();
+        }
+      }
+      showRate();
+    };
+
     const isFormField = (el) => !!el && (el.matches("input, textarea, select") || el.isContentEditable);
 
     // lembra o ultimo trecho selecionado no conteudo principal. Ao ir com o teclado
@@ -268,8 +319,12 @@ document.addEventListener("DOMContentLoaded", () => {
       else start();
     });
     stopBtn.addEventListener("click", () => stop("Leitura interrompida"));
+    speedSelect.addEventListener("change", () => setRate(speedSelect.value));
+    if (profileSlider) profileSlider.addEventListener("input", () => setRate(profileSlider.value));
   } else if (ttsBtn) {
     ttsBtn.disabled = true;
     ttsBtn.title = "Leitura em voz alta não é suportada neste navegador";
+    const profileSlider = document.getElementById("pref-velocidade");
+    if (profileSlider) profileSlider.disabled = true;
   }
 });
