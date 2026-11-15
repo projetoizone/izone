@@ -8,3 +8,10 @@ class GameViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "spelling/index.html")
+
+    def test_game_page_uses_the_shared_layout(self):
+        response = self.client.get(reverse("spelling:game"))
+
+        self.assertTemplateUsed(response, "base.html")
+        self.assertContains(response, 'data-action="toggle-contrast"')
+        self.assertContains(response, "js/game.js")

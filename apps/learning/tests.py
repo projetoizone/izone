@@ -66,6 +66,7 @@ class SkipLinkTests(TestCase):
             "learning:acessibilidade",
             "accounts:login",
             "accounts:signup",
+            "spelling:game",
         ]
         for name in pages:
             with self.subTest(page=name):

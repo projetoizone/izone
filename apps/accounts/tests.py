@@ -189,6 +189,38 @@ class SignUpViewTests(TestCase):
         user = User.objects.get(username="ana")
         self.assertTrue(UserPreferences.objects.filter(user=user).exists())
 
+    def test_new_account_keeps_the_preferences_chosen_before_signing_up(self):
+        self.client.post(
+            self.url,
+            {
+                "username": "ana",
+                "password1": PASSWORD,
+                "password2": PASSWORD,
+                "theme": "light",
+                "contrast": "high",
+                "font_size": "1.5",
+            },
+        )
+
+        preferences = User.objects.get(username="ana").preferences
+        self.assertEqual(preferences.theme, "light")
+        self.assertEqual(preferences.contrast, "high")
+        self.assertEqual(preferences.font_size, 1.5)
+
+    def test_invalid_preferences_do_not_block_signing_up(self):
+        response = self.client.post(
+            self.url,
+            {
+                "username": "ana",
+                "password1": PASSWORD,
+                "password2": PASSWORD,
+                "theme": "rosa",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounts:login"))
+        self.assertEqual(User.objects.get(username="ana").preferences.theme, "dark")
+
     def test_mismatched_passwords_show_an_error(self):
         response = self.client.post(
             self.url,
@@ -233,3 +265,63 @@ class LogInOutViewTests(TestCase):
 
         self.assertRedirects(response, reverse("learning:home"))
         self.assertNotIn("_auth_user_id", self.client.session)
+
+
+class SavedPreferencesTests(TestCase):
+    pages = (
+        "learning:home",
+        "learning:cursos",
+        "learning:tutoriais",
+        "learning:comunidade",
+        "learning:acessibilidade",
+        "learning:meuperfil",
+        "spelling:game",
+        "accounts:login",
+        "accounts:signup",
+    )
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="ana", password=PASSWORD)
+
+    def assertPreferencesApplied(self, response, theme, contrast, font_size):
+        self.assertContains(response, f'data-theme="{theme}"')
+        self.assertContains(response, f'data-contrast="{contrast}"')
+        self.assertContains(response, f"--fs-step: {font_size}")
+
+    def test_every_page_applies_the_account_preferences(self):
+        update = {"theme": "light", "contrast": "high", "font_size": 1.5}
+        UserPreferences.objects.filter(user=self.user).update(**update)
+        # log in with a fresh instance: logging in saves the user, and the post_save
+        # signal would also save the old preferences cached on self.user
+        self.client.force_login(User.objects.get(pk=self.user.pk))
+
+        for name in self.pages:
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+
+                self.assertPreferencesApplied(response, "light", "high", "1.5")
+
+    def test_every_page_applies_the_browser_preferences_when_logged_out(self):
+        # without an account the choices live in localStorage, read by base.html
+        public_pages = [name for name in self.pages if name != "learning:meuperfil"]
+        for name in public_pages:
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+
+                self.assertContains(response, 'localStorage.getItem("izone-theme")')
+                self.assertNotContains(response, "data-theme=")
+
+    def test_preferences_are_kept_after_logging_out_and_in_again(self):
+        login = {"username": "ana", "password": PASSWORD}
+        self.client.post(reverse("accounts:login"), login)
+        self.client.post(
+            reverse("accounts:update_preferences"),
+            data=json.dumps({"theme": "light", "font_size": 1.3}),
+            content_type="application/json",
+        )
+        self.client.post(reverse("accounts:logout"))
+
+        self.client.post(reverse("accounts:login"), login)
+        response = self.client.get(reverse("learning:home"))
+
+        self.assertPreferencesApplied(response, "light", "normal", "1.3")

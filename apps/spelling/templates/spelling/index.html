@@ -1,20 +1,15 @@
+{% extends 'learning/base.html' %}
 {% load static %}
 
+{% block title %}SoletraBraille{% endblock %}
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SoletraBraille</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% block css %}
   <link rel="stylesheet" href="{% static 'css/braille.css' %}">
   <!-- <link rel="stylesheet" href="{% static 'css/gameStyle.css' %}"> -->
+{% endblock %}
 
-  <script src="{% static 'js/game.js' %}" defer></script>
-</head>
-<body>
-  <main class="game">
+{% block content %}
+  <main id="conteudo-principal" class="game">
     <header>
       <h1>Soletrando</h1>
       <p>Aprenda palavras e descubra o sistema Braille.</p>
@@ -86,7 +81,8 @@
       </section>
     </div>
   </main>
-    <script src="{% static 'js/accessibility.js' %}"></script>
-    <script src="{% static 'js/demo-interactions.js' %}"></script>
-</body>
-</html>
+{% endblock %}
+
+{% block postjs %}
+  <script src="{% static 'js/game.js' %}"></script>
+{% endblock %}
