@@ -237,6 +237,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // entre blocos. Icones decorativos (aria-hidden) ficam de fora, como no leitor de tela;
     // o texto .sr-only e lido junto com a frase em que esta
     const SKIP = "script, style, noscript, template, select, textarea, [aria-hidden='true']";
+    // idioma de cada trecho: o que esta marcado com lang, como as descricoes em ingles das
+    // imagens da NASA, e lido com uma voz desse idioma, e nao com a voz em portugues
+    const pageLang = document.documentElement.lang || "pt-BR";
+    const langOf = (node) => node.parentElement.closest("[lang]")?.lang || pageLang;
     const readableText = (range) => {
       let text = "";
       const where = []; // where[i] = [no de texto, posicao] do caractere i; null numa quebra de linha
@@ -275,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       });
       let lastBlock = null;
+      let lastLang = null;
       for (let node; (node = walker.nextNode());) {
         if (node.nodeName === "BR") {
           newLine();
@@ -283,10 +288,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const box = document.createRange();
         box.selectNodeContents(node);
         if (!box.getClientRects().length || style(node.parentElement).visibility !== "visible") continue;
+        // cada bloco e cada troca de idioma comecam uma nova parte da leitura
         const block = blockOf(node);
-        if (block !== lastBlock) {
+        const lang = langOf(node);
+        if (block !== lastBlock || lang !== lastLang) {
           newLine();
           lastBlock = block;
+          lastLang = lang;
         }
         const from = node === range.startContainer ? range.startOffset : 0;
         const to = node === range.endContainer ? range.endOffset : node.length;
@@ -388,7 +396,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sentence) reveal(sentence);
 
       current = new SpeechSynthesisUtterance(reading.text.slice(from, to));
-      current.lang = "pt-BR";
+      const first = reading.where[from];
+      current.lang = first ? langOf(first[0]) : pageLang;
       current.rate = rate;
       // nem toda voz informa as palavras; sem isso, fica so o destaque da frase
       current.onboundary = (event) => {
