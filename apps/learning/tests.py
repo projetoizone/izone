@@ -1,13 +1,20 @@
 import itertools
+import json
 import re
 from html.parser import HTMLParser
+from io import BytesIO
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.enums import Contrast, Theme
+from apps.learning import nasa_images
 
 User = get_user_model()
 PASSWORD = "Senha-forte-123"
@@ -19,6 +26,7 @@ PAGES = (
     "learning:tutoriais",
     "learning:comunidade",
     "learning:acessibilidade",
+    "learning:astronomia",
     "accounts:login",
     "accounts:signup",
     "spelling:game",
@@ -32,6 +40,7 @@ class PublicPagesTests(TestCase):
         ("learning:tutoriais", "learning/tutoriais.html"),
         ("learning:comunidade", "learning/comunidade.html"),
         ("learning:acessibilidade", "learning/acessibilidade.html"),
+        ("learning:astronomia", "learning/astronomia.html"),
     )
 
     def test_pages_render(self):
@@ -179,6 +188,67 @@ class DecorativeSymbolsTests(TestCase):
         self.assertContains(response, '<span class="sr-only">Duração:</span>', count=4)
 
 
+URLOPEN = "apps.learning.nasa_images.urlopen"
+
+
+def nasa_item(nasa_id="PIA14417", title="Weighing in on the Dumbbell Nebula", **data):
+    """An item as the NASA Image and Video Library API returns it."""
+    base = f"https://images-assets.nasa.gov/image/{nasa_id}/{nasa_id}"
+    return {
+        "href": f"{base}/collection.json",
+        "data": [
+            {
+                "nasa_id": nasa_id,
+                "title": title,
+                "media_type": "image",
+                "date_created": "2011-08-10T21:00:09Z",
+                "center": "JPL",
+                "description": "The <b>Dumbbell nebula</b>, also known as &quot;Messier 27&quot;, "
+                "pumps out infrared light.",
+                "secondary_creator": "NASA/JPL-Caltech",
+                "keywords": ["Nebula", "Spitzer Space Telescope", "nebula"],
+                **data,
+            }
+        ],
+        "links": [
+            {
+                "href": f"{base}~large.jpg",
+                "rel": "alternate",
+                "render": "image",
+                "width": 1920,
+                "height": 960,
+            },
+            {
+                "href": f"{base}~medium.jpg",
+                "rel": "alternate",
+                "render": "image",
+                "width": 1280,
+                "height": 640,
+            },
+            {
+                "href": f"{base}~small.jpg",
+                "rel": "alternate",
+                "render": "image",
+                "width": 640,
+                "height": 320,
+            },
+            {"href": f"{base}~thumb.jpg", "rel": "preview", "render": "image"},
+            {"href": f"{base}~orig.jpg", "rel": "canonical", "render": "image"},
+        ],
+    }
+
+
+def nasa_api(*items, total=None):
+    """A urlopen replacement that answers every request with these items."""
+    body = {
+        "collection": {
+            "items": list(items),
+            "metadata": {"total_hits": len(items) if total is None else total},
+        }
+    }
+    return lambda request, timeout: BytesIO(json.dumps(body).encode())
+
+
 def strip_tags(html):
     html = re.sub(
         r'<(\w+)[^>]*aria-hidden="true"[^>]*>.*?</\1>', "", html, flags=re.DOTALL
@@ -190,6 +260,21 @@ class ScreenReaderStructureTests(TestCase):
     def pages(self):
         for name in PAGES:
             yield name, self.client.get(reverse(name)).content.decode()
+        # the astronomy pages also show results and an image, from a mocked NASA API
+        cache.clear()
+        with patch(
+            URLOPEN,
+            side_effect=nasa_api(
+                nasa_item(), nasa_item("PIA04216", "Ant Nebula"), total=30
+            ),
+        ):
+            url = reverse("learning:astronomia")
+            yield (
+                "astronomy results",
+                self.client.get(url + "?q=nebula&pagina=2").content.decode(),
+            )
+            url = reverse("learning:astronomia_imagem", args=["PIA14417"])
+            yield "astronomy image", self.client.get(url + "?q=nebula").content.decode()
         self.client.force_login(User.objects.create_user(username="ana"))
         yield (
             "learning:meuperfil",
@@ -448,3 +533,386 @@ class ZoomTests(TestCase):
 
                 self.assertIn('class="with-sidebar"', html)
                 self.assertNotIn("grid-template-columns", html)
+
+
+class NasaApiMixin:
+    def setUp(self):
+        cache.clear()
+        patcher = patch(URLOPEN, side_effect=nasa_api(nasa_item()))
+        self.urlopen = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def answer(self, *items, total=None):
+        self.urlopen.side_effect = nasa_api(*items, total=total)
+
+    def requested(self):
+        """The query string of the last request to the NASA API."""
+        request = self.urlopen.call_args.args[0]
+        self.assertTrue(
+            request.full_url.startswith("https://images-api.nasa.gov/search?")
+        )
+        self.assertIn("timeout", self.urlopen.call_args.kwargs)
+        return {k: v[0] for k, v in parse_qs(urlsplit(request.full_url).query).items()}
+
+
+class SpaceImageSearchTests(NasaApiMixin, TestCase):
+    url = reverse("learning:astronomia")
+
+    def search(self, query):
+        return self.client.get(f"{self.url}?{query}")
+
+    def test_courses_page_links_to_the_astronomy_page(self):
+        response = self.client.get(reverse("learning:cursos"))
+
+        self.assertContains(response, f'href="{self.url}"')
+
+    def test_page_without_a_search_only_shows_the_form(self):
+        response = self.client.get(self.url)
+
+        self.urlopen.assert_not_called()
+        self.assertContains(response, '<label for="id_q">Assunto, em inglês</label>')
+        self.assertContains(response, 'aria-describedby="id_q_helptext"')
+        self.assertContains(response, '<p class="field-hint" id="id_q_helptext">')
+        self.assertContains(response, "<legend>Período, opcional</legend>")
+        self.assertNotContains(response, 'id="resultados-h"')
+
+    def test_topics_have_portuguese_names_and_search_in_english(self):
+        response = self.client.get(self.url)
+
+        self.assertContains(
+            response,
+            f'<a class="btn btn-outline" href="{self.url}?q=black%20hole">Buracos negros</a>',
+            html=True,
+        )
+
+    def test_search_asks_the_nasa_for_images_of_the_subject(self):
+        response = self.search("q=nebula")
+
+        self.assertEqual(
+            self.requested(),
+            {"q": "nebula", "media_type": "image", "page": "1", "page_size": "12"},
+        )
+        self.assertContains(
+            response,
+            "<title>nebula, página 1 de 1 - Imagens astronômicas - iZone</title>",
+        )
+        # after searching, the focus goes to the results
+        self.assertContains(
+            response,
+            '<h2 id="resultados-h" tabindex="-1" autofocus>Resultados para “nebula”</h2>',
+        )
+        self.assertContains(response, "1 imagem encontrada.")
+        detail = reverse("learning:astronomia_imagem", args=["PIA14417"])
+        self.assertContains(
+            response,
+            f'<a href="{detail}?q=nebula"><span lang="en">Weighing in on the Dumbbell Nebula</span>'
+            '<span class="sr-only">, 10/08/2011</span></a>',
+            html=True,
+        )
+        # the link already names the image, so the thumbnail is decorative
+        self.assertContains(
+            response,
+            '<img src="https://images-assets.nasa.gov/image/PIA14417/PIA14417~thumb.jpg" alt="" loading="lazy">',
+            html=True,
+        )
+
+    def test_current_topic_is_marked(self):
+        response = self.search("q=nebula")
+
+        self.assertContains(
+            response,
+            f'<a class="btn btn-outline" href="{self.url}?q=nebula" aria-current="true">Nebulosas</a>',
+            html=True,
+        )
+
+    def test_years_narrow_the_search(self):
+        self.search("q=galaxy&ano_inicio=2000&ano_fim=2010")
+
+        params = self.requested()
+        self.assertEqual(params["year_start"], "2000")
+        self.assertEqual(params["year_end"], "2010")
+
+    def test_invalid_search_shows_the_error_on_the_field(self):
+        cases = {
+            "q=": ("q", "Digite um assunto para pesquisar."),
+            "q=galaxy&ano_inicio=1800": ("ano_inicio", "Digite um ano entre 1920 e"),
+            "q=galaxy&ano_fim=abc": ("ano_fim", "Digite um ano entre 1920 e"),
+            "q=galaxy&ano_inicio=2010&ano_fim=2000": (
+                "ano_fim",
+                "O ano final não pode ser antes do inicial.",
+            ),
+        }
+        for query, (field, message) in cases.items():
+            with self.subTest(query=query):
+                response = self.search(query)
+
+                self.urlopen.assert_not_called()
+                html = response.content.decode()
+                self.assertIn("<title>Erro: Imagens astronômicas - iZone</title>", html)
+                self.assertIn(
+                    f'<p class="field-error" id="id_{field}_error">{message}', html
+                )
+                tag = re.search(rf'<input [^>]*id="id_{field}"[^>]*>', html).group()
+                self.assertIn('aria-invalid="true"', tag)
+                self.assertIn(f"id_{field}_error", tag)
+                self.assertIn("autofocus", tag)
+
+    def test_pages_link_to_each_other_and_keep_the_search(self):
+        self.answer(nasa_item(), total=30)  # 3 pages of 12
+
+        response = self.search("q=nebula&ano_inicio=2000&pagina=2")
+
+        self.assertEqual(self.requested()["page"], "2")
+        self.assertContains(response, "30 imagens encontradas. Página 2 de 3.")
+        self.assertContains(
+            response, f'href="{self.url}?q=nebula&amp;ano_inicio=2000" rel="prev"'
+        )
+        self.assertContains(
+            response,
+            f'href="{self.url}?q=nebula&amp;ano_inicio=2000&amp;pagina=3" rel="next"',
+        )
+        detail = reverse("learning:astronomia_imagem", args=["PIA14417"])
+        self.assertContains(
+            response, f'href="{detail}?q=nebula&amp;ano_inicio=2000&amp;pagina=2"'
+        )
+
+    def test_first_and_last_pages_link_only_inwards(self):
+        self.answer(nasa_item(), total=30)
+
+        first = self.search("q=nebula")
+        last = self.search("q=nebula&pagina=3")
+
+        self.assertNotContains(first, 'rel="prev"')
+        self.assertContains(first, 'rel="next"')
+        self.assertContains(last, 'rel="prev"')
+        self.assertNotContains(last, 'rel="next"')
+
+    def test_page_number_stays_within_what_the_api_serves(self):
+        for value, page in (
+            ("abc", "1"),
+            ("0", "1"),
+            ("99999", str(nasa_images.MAX_PAGE)),
+        ):
+            with self.subTest(pagina=value):
+                self.search(f"q=nebula&pagina={value}")
+
+                self.assertEqual(self.requested()["page"], page)
+
+    def test_page_past_the_last_one_links_back(self):
+        self.answer(total=30)
+
+        response = self.search("q=nebula&pagina=5")
+
+        self.assertContains(response, "Esta pesquisa tem 3 páginas.")
+        self.assertContains(
+            response, f'href="{self.url}?q=nebula&amp;pagina=3" rel="prev"'
+        )
+        self.assertContains(
+            response,
+            f'<a href="{self.url}?q=nebula&amp;pagina=3">Ir para a última página</a>',
+        )
+
+    def test_no_results_suggest_searching_in_english(self):
+        self.answer(total=0)
+
+        response = self.search("q=nebulosa")
+
+        self.assertContains(
+            response, "Nenhuma imagem encontrada. A NASA descreve as imagens em inglês"
+        )
+
+    def test_unusable_items_are_left_out(self):
+        unsafe = nasa_item("UNSAFE", "Unsafe links")
+        for link in unsafe["links"]:
+            link["href"] = "javascript:alert(1)"
+        self.answer(
+            nasa_item("VIDEO1", "A video", media_type="video"),
+            nasa_item("NOTITLE", ""),
+            unsafe,
+            nasa_item(),
+        )
+
+        response = self.search("q=nebula")
+
+        self.assertNotContains(response, "A video")
+        self.assertNotContains(response, "NOTITLE")
+        self.assertNotContains(response, "javascript:")
+        self.assertContains(response, "Unsafe links")  # shown, without the image
+        self.assertContains(response, "Weighing in on the Dumbbell Nebula")
+
+    def test_api_failures_show_a_message(self):
+        failures = {
+            "offline": (URLError("no network"), nasa_images.UNAVAILABLE),
+            "timeout": (TimeoutError(), nasa_images.UNAVAILABLE),
+            "server error": (
+                HTTPError("u", 500, "Error", {}, BytesIO(b"")),
+                nasa_images.UNAVAILABLE,
+            ),
+            "refused": (
+                HTTPError("u", 400, "Bad Request", {}, BytesIO(b"")),
+                nasa_images.REFUSED,
+            ),
+            "not json": (
+                lambda request, timeout: BytesIO(b"<html>"),
+                nasa_images.UNAVAILABLE,
+            ),
+            "no collection": (
+                lambda request, timeout: BytesIO(b"[]"),
+                nasa_images.UNAVAILABLE,
+            ),
+        }
+        for case, (failure, message) in failures.items():
+            with self.subTest(case=case):
+                cache.clear()
+                self.urlopen.side_effect = failure
+
+                response = self.search("q=nebula")
+
+                self.assertEqual(response.status_code, 502)
+                self.assertContains(response, "Pesquisa não concluída", status_code=502)
+                self.assertContains(response, message, status_code=502)
+
+    def test_results_are_cached(self):
+        self.search("q=nebula")
+        self.search("q=nebula")
+        self.search("q=galaxy")
+
+        self.assertEqual(self.urlopen.call_count, 2)
+
+
+class SpaceImageDetailTests(NasaApiMixin, TestCase):
+    def detail(self, nasa_id="PIA14417", query=""):
+        url = reverse("learning:astronomia_imagem", args=[nasa_id])
+        return self.client.get(f"{url}?{query}" if query else url)
+
+    def test_asks_the_nasa_for_the_image(self):
+        self.detail()
+
+        self.assertEqual(self.requested(), {"nasa_id": "PIA14417"})
+
+    def test_shows_the_image_marked_as_english(self):
+        response = self.detail()
+
+        self.assertContains(
+            response,
+            "<title>Weighing in on the Dumbbell Nebula - Imagens astronômicas - iZone</title>",
+        )
+        self.assertContains(
+            response,
+            '<h1 class="page-title" lang="en">Weighing in on the Dumbbell Nebula</h1>',
+            html=True,
+        )
+        base = "https://images-assets.nasa.gov/image/PIA14417/PIA14417"
+        # the largest version up to 1280px wide, with the narrower ones for small screens
+        self.assertContains(
+            response,
+            f'<img src="{base}~medium.jpg" srcset="{base}~small.jpg 640w, {base}~medium.jpg 1280w" '
+            'sizes="(min-width: 80rem) 72rem, 100vw" width="1280" height="640" '
+            'alt="Weighing in on the Dumbbell Nebula" lang="en">',
+            html=True,
+        )
+        self.assertContains(
+            response, "<figcaption>Crédito: NASA/JPL-Caltech</figcaption>", html=True
+        )
+        self.assertContains(
+            response,
+            f'<a href="{base}~orig.jpg">Abrir a imagem em tamanho original</a>',
+            html=True,
+        )
+
+    def test_description_is_plain_text_in_english(self):
+        response = self.detail()
+
+        self.assertContains(
+            response, '<h2 id="descricao">Descrição da imagem</h2>', html=True
+        )
+        self.assertContains(
+            response,
+            '<div class="space-description" lang="en"><p>The Dumbbell nebula, also known as '
+            '"Messier 27", pumps out infrared light.</p></div>',
+            html=True,
+        )
+
+    def test_shows_the_facts_and_the_source(self):
+        response = self.detail()
+
+        self.assertContains(response, "<dt>Data</dt><dd>10/08/2011</dd>", html=True)
+        self.assertContains(
+            response,
+            "<dt>Centro da NASA</dt><dd>Jet Propulsion Laboratory (JPL)</dd>",
+            html=True,
+        )
+        self.assertContains(response, 'href="https://images.nasa.gov/details/PIA14417"')
+
+    def test_keywords_search_for_themselves_once_each(self):
+        response = self.detail()
+
+        search = reverse("learning:astronomia")
+        self.assertContains(
+            response,
+            f'<a class="btn btn-outline" href="{search}?q=Spitzer%20Space%20Telescope" lang="en">Spitzer Space Telescope</a>',
+            html=True,
+        )
+        self.assertContains(response, f'href="{search}?q=Nebula"', count=1)
+        self.assertNotContains(response, f'href="{search}?q=nebula"')
+
+    def test_back_link_returns_to_the_results(self):
+        search = reverse("learning:astronomia")
+
+        from_results = self.detail(query="q=nebula&ano_fim=2010&pagina=2")
+        direct = self.detail()
+
+        self.assertContains(
+            from_results,
+            f'<a href="{search}?q=nebula&amp;ano_fim=2010&amp;pagina=2">Voltar aos resultados</a>',
+            html=True,
+        )
+        self.assertContains(
+            direct, f'<a href="{search}">Pesquisar imagens astronômicas</a>', html=True
+        )
+
+    def test_image_without_sized_versions_uses_the_preview(self):
+        item = nasa_item()
+        item["links"] = [link for link in item["links"] if link["rel"] != "alternate"]
+        self.answer(item)
+
+        response = self.detail()
+
+        self.assertContains(
+            response,
+            '<img src="https://images-assets.nasa.gov/image/PIA14417/PIA14417~thumb.jpg" '
+            'alt="Weighing in on the Dumbbell Nebula" lang="en">',
+            html=True,
+        )
+
+    def test_unknown_image_is_not_found(self):
+        for items in ((), (nasa_item("PIA00001"),), (nasa_item(media_type="video"),)):
+            with self.subTest(items=len(items)):
+                cache.clear()
+                self.answer(*items)
+
+                response = self.detail()
+
+                self.assertContains(response, "Imagem não encontrada", status_code=404)
+
+    def test_api_failure_shows_a_message(self):
+        self.urlopen.side_effect = URLError("no network")
+
+        response = self.detail()
+
+        self.assertContains(response, "Imagem indisponível", status_code=502)
+        self.assertContains(response, nasa_images.UNAVAILABLE, status_code=502)
+
+
+class ReadAloudLanguageTests(TestCase):
+    def test_each_passage_is_read_in_its_own_language(self):
+        js = (settings.BASE_DIR / "public" / "js" / "accessibility.js").read_text()
+
+        self.assertIn('closest("[lang]")', js)
+        self.assertNotIn('current.lang = "pt-BR"', js)
+
+    def test_accessibility_page_documents_it(self):
+        response = self.client.get(reverse("learning:acessibilidade"))
+
+        self.assertContains(response, "Trechos em inglês")
+        self.assertContains(response, "As imagens têm texto alternativo.")
