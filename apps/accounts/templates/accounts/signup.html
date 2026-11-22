@@ -7,7 +7,7 @@
 <main id="conteudo-principal" class="container">
     <div class="auth-grid">
         <section class="card" aria-labelledby="signup-heading" style="max-width: 520px; margin: 0 auto; width: 100%;">
-            <h2 id="signup-heading" class="page-title">Criar uma conta</h2>
+            <h1 id="signup-heading" class="page-title">Criar uma conta</h1>
             
             {% if form.non_field_errors %}
                 <div class="field-error-block" role="alert">
@@ -17,7 +17,7 @@
                 </div>
             {% endif %}
 
-            <form method="post" novalidate>
+            <form method="post" novalidate data-send-preferences>
                 {% csrf_token %}
 
                 {% for field in form %}
@@ -26,11 +26,13 @@
                         {{ field }}
 
                         {% if field.help_text %}
-                            <div class="field-hint">{{ field.help_text|safe }}</div>
+                            <div class="field-hint" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
                         {% endif %}
 
                         {% if field.errors %}
-                            <p class="field-error" id="{{ field.id_for_label }}-error">{{ field.erros.0 }}</p>
+                            <ul class="field-error" id="{{ field.auto_id }}_error">
+                                {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                            </ul>
                         {% endif %}
                     </div>
                 {% endfor %}

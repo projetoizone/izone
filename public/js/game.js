@@ -85,6 +85,7 @@ function renderBraille(word) {
       // ainda não suportados.
       const unsupported = document.createElement("span");
       unsupported.textContent = character;
+      unsupported.setAttribute("role", "img");
       unsupported.setAttribute("aria-label",
         `${character}: representação Braille indisponível`);
       display.appendChild(unsupported);
@@ -341,7 +342,19 @@ function showWord(challenge) {
   speak(challenge.word);
 }
 
-async function loadRound() {
+// Move o foco só quando ele se perdeu (o elemento focado sumiu ou foi
+// desativado), para não tirar o usuário do lugar em que ele está na página.
+function focusIfLost(element) {
+  const active = document.activeElement;
+  const lost = !active || active === document.body
+    || active.disabled || !!active.closest("[hidden]");
+
+  if (lost) element.focus();
+}
+
+// startedByUser: a rodada foi pedida pelo botão "Próxima palavra" ou
+// "Tentar novamente". Na primeira rodada, ao abrir a página, o foco não muda.
+async function loadRound(startedByUser = false) {
   answerInput.disabled = true;
   hearButton.disabled = true;
   nextButton.hidden = true;
@@ -356,7 +369,7 @@ async function loadRound() {
 
     showWord(challenge);
     answerInput.disabled = false;
-    answerInput.focus();
+    if (startedByUser) focusIfLost(answerInput);
   } catch (error) {
     console.error(error);
 
@@ -365,6 +378,7 @@ async function loadRound() {
 
     nextButton.textContent = "Tentar novamente";
     nextButton.hidden = false;
+    if (startedByUser) focusIfLost(nextButton);
   } finally {
     hearButton.disabled = false;
   }
@@ -407,6 +421,8 @@ answerForm.addEventListener("submit", event => {
     nextButton.textContent = "Próxima palavra";
     nextButton.hidden = false;
     answerInput.disabled = true;
+    // a resposta foi desativada com o foco nela; o próximo passo é a próxima palavra
+    focusIfLost(nextButton);
 
     speak("Correto! Muito bem.");
   } else {
@@ -417,7 +433,7 @@ answerForm.addEventListener("submit", event => {
   }
 });
 
-nextButton.addEventListener("click", loadRound);
+nextButton.addEventListener("click", () => loadRound(true));
 
 // Inicia a primeira rodada.
 loadRound();

@@ -7,7 +7,7 @@
 <main id="conteudo-principal" class="container">
     <div class="auth-grid">
         <section class="card" aria-labelledby="login-heading" style="max-width: 480px; margin: 0 auto; width: 100%;">
-            <h2 id="login-heading" class="page-title">Entrar no iZone</h2>
+            <h1 id="login-heading" class="page-title">Entrar no iZone</h1>
             
             {% if form.non_field_errors %}
                 <div class="field-error-block" role="alert">
@@ -34,7 +34,7 @@
                         {% endif %}
                     >
                     {% if form.username.errors %}
-                        <p class="field-error" id="username-error">{{ form.username.erros.0 }}</p>
+                        <p class="field-error" id="username-error">{{ form.username.errors.0 }}</p>
                     {% endif %}
                 </div>
 
@@ -51,7 +51,7 @@
                         {% endif %}
                     >
                     {% if form.password.errors %}
-                        <p class="field-error" id="password-error">{{ form.password.erros.0 }}</p>
+                        <p class="field-error" id="password-error">{{ form.password.errors.0 }}</p>
                     {% endif %}
                 </div>
 

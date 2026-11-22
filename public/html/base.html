@@ -10,6 +10,7 @@
 {% url 'learning:tutoriais' as tutoriais_url %}
 {% url 'learning:comunidade' as comunidade_url %}
 {% url 'learning:meuperfil' as meuperfil_url %}
+{% url 'learning:acessibilidade' as acessibilidade_url %}
 
 <!DOCTYPE html>
 <html lang="pt-BR"
@@ -72,10 +73,19 @@
         <a class="logo" href="{{ home_url }}"><span class="logo-dot">i</span>Zone</a>
 
         <div class="a11y-bar" role="group" aria-label="Opções de acessibilidade">
-            <button type="button" class="a11y-btn" data-action="font-increase" aria-label="Aumentar tamanho da fonte">A+</button>
-            <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="Diminuir tamanho da fonte">A-</button>
-            <button type="button" class="a11y-btn" data-action="toggle-contrast" aria-pressed="false" aria-label="Alternar alto contraste">C</button>
-            <button type="button" class="a11y-btn" data-action="toggle-theme" aria-pressed="false" aria-label="Alternar tema claro/escuro">◐</button>
+            <button type="button" class="a11y-btn" data-action="font-increase" aria-label="A+ Aumentar tamanho da fonte">A+</button>
+            <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="A- Diminuir tamanho da fonte">A-</button>
+            <span class="a11y-field">
+                <label for="a11y-tema">Tema</label>
+                <select id="a11y-tema" data-action="theme">
+                    <option value="dark" data-set-theme="dark" data-set-contrast="normal">Escuro (padrão)</option>
+                    <option value="light" data-set-theme="light" data-set-contrast="normal">Claro</option>
+                    <option value="dark-high" data-set-theme="dark" data-set-contrast="high">Alto contraste escuro</option>
+                    <option value="light-high" data-set-theme="light" data-set-contrast="high">Alto contraste claro</option>
+                    <option value="yellow" data-set-theme="yellow" data-set-contrast="normal">Amarelo no preto</option>
+                    <option value="sepia" data-set-theme="sepia" data-set-contrast="normal">Sépia</option>
+                </select>
+            </span>
             <button type="button" class="a11y-btn" data-action="toggle-tts"><span aria-hidden="true">🔊</span> Ouvir página</button>
         </div>
 
@@ -98,7 +108,7 @@
         <nav aria-label="Rodapé">
         <ul>
             <li><a href="sobrenos.html">SOBRE NÓS</a></li>
-            <li><a href="acessibilidade.html">ACESSIBILIDADE</a></li>
+            <li><a href="{{ acessibilidade_url }}" {% if request.path == acessibilidade_url %}aria-current="page"{% endif %}>ACESSIBILIDADE</a></li>
             <li><a href="contato.html">CONTATO</a></li>
             <li><a href="termosdeuso.html">TERMOS DE USO</a></li>
             <li><a href="politica_privacidade.html">POLÍTICA DE PRIVACIDADE</a></li>

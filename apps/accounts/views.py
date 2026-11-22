@@ -12,15 +12,27 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic.edit import CreateView
 
-from .enums import Theme, Contrast, FontSize
 from .forms import UserSignUpForm
 from .models import UserPreferences
+from .preferences import InvalidPreference, clean_preferences, update_preferences
 
 
 class SignUpView(CreateView):
     template_name = "accounts/signup.html"
     success_url = reverse_lazy("accounts:login")
     form_class = UserSignUpForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # new accounts start with the theme, contrast and font size chosen before signing up
+        try:
+            cleaned = clean_preferences(self.request.POST)
+        except InvalidPreference:
+            cleaned = {}
+        update_preferences(self.object.preferences, cleaned)
+
+        return response
 
 
 class LogInView(LoginView):
@@ -39,38 +51,12 @@ class UpdatePreferencesView(View):
         except json.JSONDecodeError:
             new_preferences = request.POST
 
+        try:
+            cleaned = clean_preferences(new_preferences)
+        except InvalidPreference as error:
+            return HttpResponseBadRequest(str(error))
+
         user_preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
-        updated_fields = []
+        update_preferences(user_preferences, cleaned)
 
-        if theme := new_preferences.get("theme"):
-            if theme not in Theme.values:
-                return HttpResponseBadRequest(
-                    "Opção de tema inválida. Temas disponíveis: 'light', 'dark' e 'system'."
-                )
-            user_preferences.theme = theme
-            updated_fields.append("theme")
-
-        if contrast := new_preferences.get("contrast"):
-            if contrast not in Contrast.values:
-                return HttpResponseBadRequest(
-                    "Opção de contraste inválida. Contrastes disponíveis: 'normal' or 'high'."
-                )
-            user_preferences.contrast = contrast
-            updated_fields.append("contrast")
-
-        if font_size := new_preferences.get("font_size"):
-            try:
-                font_size = float(font_size)
-            except (ValueError, TypeError):
-                return HttpResponseBadRequest("Tamanho de fonte inválido.")
-
-            if font_size not in FontSize.values:
-                return HttpResponseBadRequest("Tamanho de fonte não permitido.")
-
-            user_preferences.font_size = float(font_size)
-            updated_fields.append("font_size")
-
-        if updated_fields:
-            user_preferences.save(update_fields=updated_fields)
-
-        return JsonResponse({"status": "success", "updated_fields": updated_fields})
+        return JsonResponse({"status": "success", "updated_fields": list(cleaned)})

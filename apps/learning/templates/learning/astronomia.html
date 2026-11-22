@@ -1,0 +1,88 @@
+{% extends 'learning/base.html' %}
+{% load static %}
+
+{% block title %}{% if form.errors %}Erro: {% elif results %}{{ form.cleaned_data.q }}, página {{ results.page }} de {{ results.pages }} - {% endif %}Imagens astronômicas{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/astronomia.css' %}">
+{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h1 class="page-title">IMAGENS ASTRONÔMICAS</h1>
+
+  <p class="lede">Pesquise no acervo de imagens da NASA: nebulosas, galáxias, planetas e muito mais. Cada imagem vem com a descrição escrita pela NASA.</p>
+
+  <section class="card space-search" aria-labelledby="pesquisa-h">
+    <h2 id="pesquisa-h">Pesquisar imagens</h2>
+
+    <form method="get" action="{% url 'learning:astronomia' %}" role="search" aria-label="Imagens astronômicas" novalidate>
+      <div class="field">
+        <label for="{{ form.q.id_for_label }}">{{ form.q.label }}</label>
+        {{ form.q }}
+        <p class="field-hint" id="{{ form.q.auto_id }}_helptext">{{ form.q.help_text }}</p>
+        {% if form.q.errors %}<p class="field-error" id="{{ form.q.auto_id }}_error">{{ form.q.errors.0 }}</p>{% endif %}
+      </div>
+
+      <fieldset class="space-years">
+        <legend>Período, opcional</legend>
+        {% for field in form %}{% if field.name != "q" %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}<span class="sr-only"> (ano)</span></label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error" id="{{ field.auto_id }}_error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endif %}{% endfor %}
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary">Pesquisar</button>
+    </form>
+
+    <h3 id="assuntos-h">Ou escolha um assunto</h3>
+    <ul class="space-topics" aria-labelledby="assuntos-h">
+      {% for label, query in topics %}
+      <li><a class="btn btn-outline" href="{% url 'learning:astronomia' %}?q={{ query|urlencode }}"{% if form.is_valid and form.cleaned_data.q == query %} aria-current="true"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% if error %}
+  <section class="card space-message" aria-labelledby="resultados-h">
+    <h2 id="resultados-h" tabindex="-1" autofocus>Pesquisa não concluída</h2>
+    <p>{{ error }}</p>
+  </section>
+  {% elif results %}
+  <section class="space-results" aria-labelledby="resultados-h">
+    <h2 id="resultados-h" tabindex="-1" autofocus>Resultados para “{{ form.cleaned_data.q }}”</h2>
+    {% if results.images %}
+    <p>{{ results.total }} image{{ results.total|pluralize:"m,ns" }} encontrada{{ results.total|pluralize }}{% if results.pages > 1 %}. Página {{ results.page }} de {{ results.pages }}{% endif %}.</p>
+
+    <ul class="card-grid space-grid">
+      {% for image in results.images %}
+      <li class="card space-card">
+        {% if image.thumbnail %}<img src="{{ image.thumbnail }}" alt="" loading="lazy">{% endif %}
+        <h3><a href="{% url 'learning:astronomia_imagem' image.nasa_id %}?{{ search_query }}"><span lang="en">{{ image.title }}</span>{% if image.created %}<span class="sr-only">, {{ image.created|date:"d/m/Y" }}</span>{% endif %}</a></h3>
+        {% if image.created %}<p class="space-date">{{ image.created|date:"d/m/Y" }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% elif results.total %}
+    <p>Esta pesquisa tem {{ results.pages }} página{{ results.pages|pluralize }}. <a href="{{ last_url }}">Ir para a última página</a></p>
+    {% else %}
+    <p>Nenhuma imagem encontrada. A NASA descreve as imagens em inglês: tente o assunto em inglês, outro período ou um dos assuntos acima.</p>
+    {% endif %}
+
+    {% if prev_url or next_url %}
+    <nav class="space-pages" aria-label="Páginas de resultados">
+      <ul>
+        {% if prev_url %}<li><a class="btn btn-outline" href="{{ prev_url }}" rel="prev">Página anterior</a></li>{% endif %}
+        {% if next_url %}<li><a class="btn btn-outline" href="{{ next_url }}" rel="next">Próxima página</a></li>{% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
+    <p class="space-source">Imagens e descrições: <a href="https://images.nasa.gov/">NASA Image and Video Library</a>.</p>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

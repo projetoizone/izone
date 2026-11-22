@@ -1,0 +1,58 @@
+{% extends 'learning/base.html' %}
+{% load static %}
+
+{% block title %}{% if image %}{{ image.title }}{% elif error %}Imagem indisponível{% else %}Imagem não encontrada{% endif %} - Imagens astronômicas{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/astronomia.css' %}">
+{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <p class="space-back"><a href="{{ back_url }}">{% if back_to_results %}Voltar aos resultados{% else %}Pesquisar imagens astronômicas{% endif %}</a></p>
+
+  {% if image %}
+  <h1 class="page-title" lang="en">{{ image.title }}</h1>
+
+  {% with shown=image.shown %}{% if shown %}
+  <figure class="space-figure">
+    {# o texto alternativo identifica a imagem; a descricao completa vem logo abaixo, com titulo proprio #}
+    <img src="{{ shown.url }}"{% if image.srcset %} srcset="{{ image.srcset }}" sizes="(min-width: 80rem) 72rem, 100vw"{% endif %}{% if shown.width and shown.height %} width="{{ shown.width }}" height="{{ shown.height }}"{% endif %} alt="{{ image.title }}" lang="en">
+    <figcaption>Crédito: {{ image.credit }}</figcaption>
+  </figure>
+  {% endif %}{% endwith %}
+
+  <dl class="space-facts">
+    {% if image.created %}<div><dt>Data</dt><dd>{{ image.created|date:"d/m/Y" }}</dd></div>{% endif %}
+    {% if image.center %}<div><dt>Centro da NASA</dt><dd>{{ image.center }}</dd></div>{% endif %}
+    <div><dt>Código no acervo</dt><dd>{{ image.nasa_id }}</dd></div>
+  </dl>
+
+  {% if image.original %}<p><a href="{{ image.original }}">Abrir a imagem em tamanho original</a>, para ver os detalhes com zoom.</p>{% endif %}
+
+  <h2 id="descricao">Descrição da imagem</h2>
+  <p class="field-hint">Texto da NASA, em inglês. O botão Ouvir página da barra de acessibilidade lê esta descrição com uma voz em inglês, se o navegador tiver uma.</p>
+  <div class="space-description" lang="en">
+    {% for paragraph in image.description %}<p>{{ paragraph }}</p>{% empty %}<p>{{ image.title }}</p>{% endfor %}
+  </div>
+
+  {% if image.keywords %}
+  <h2 id="palavras-chave-h">Palavras-chave</h2>
+  <p>Cada uma abre uma pesquisa com ela.</p>
+  <ul class="space-topics" aria-labelledby="palavras-chave-h">
+    {% for keyword in image.keywords %}
+    <li><a class="btn btn-outline" href="{% url 'learning:astronomia' %}?q={{ keyword|urlencode }}" lang="en">{{ keyword }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <p class="space-source">Fonte: <a href="{{ image.details_url }}">esta imagem na NASA Image and Video Library</a>.</p>
+  {% elif error %}
+  <h1 class="page-title">Imagem indisponível</h1>
+  <p>{{ error }}</p>
+  {% else %}
+  <h1 class="page-title">Imagem não encontrada</h1>
+  <p>O acervo da NASA não tem uma imagem com o código “{{ view.kwargs.nasa_id }}”.</p>
+  {% endif %}
+</main>
+{% endblock %}
