@@ -1,0 +1,65 @@
+{% extends 'learning/base.html' %}
+{% load static %}
+
+{% block title %}{% if article %}{{ article.title }}{% elif error %}Artigo indisponível{% else %}Artigo não encontrado{% endif %} - Wikipédia{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/wikipedia.css' %}">
+{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <p class="wiki-back"><a href="{{ back_url }}">{% if back_to_results %}Voltar aos resultados{% else %}Pesquisar na Wikipédia{% endif %}</a></p>
+
+  {% if article %}
+  <h1 class="page-title">{{ article.title }}</h1>
+  {% if article.description %}<p class="lede">{{ article.description }}</p>{% endif %}
+
+  {# o texto puro deixa de fora o que nao e texto; o artigo completo fica a um link #}
+  <p class="field-hint">Fórmulas, tabelas e quadros não aparecem nesta versão em texto.{% if article.url %} <a href="{{ article.url }}">Ler este artigo na Wikipédia</a>{% endif %}</p>
+
+  {% with image=article.image %}{% if image %}
+  <figure class="wiki-figure">
+    <img src="{{ image.url }}"{% if image.width and image.height %} width="{{ image.width }}" height="{{ image.height }}"{% endif %} alt="{{ image.alt }}"{% if image.alt_lang %} lang="{{ image.alt_lang }}"{% endif %}>
+    {# a licenca da imagem pede o autor e a licenca #}
+    <figcaption>{% if image.author or image.license %}Imagem: {{ image.author }}{% if image.author and image.license %}, {% endif %}{% if image.public_domain %}domínio público{% elif image.license %}licença {% if image.license_url %}<a href="{{ image.license_url }}">{{ image.license }}</a>{% else %}{{ image.license }}{% endif %}{% endif %}. {% endif %}{% if image.page_url %}<a href="{{ image.page_url }}">Ver a imagem no Wikimedia Commons</a>{% endif %}</figcaption>
+  </figure>
+  {% endif %}{% endwith %}
+
+  {% if article.disambiguation %}
+  {# o texto puro nao tem os links para os artigos da lista #}
+  <p>Esta página lista artigos com nomes parecidos. Para abrir um deles, <a href="{% url 'learning:wikipedia' %}?q={{ article.title|urlencode }}">pesquise “{{ article.title }}”</a>.</p>
+  {% endif %}
+
+  <div class="wiki-text">
+    {% for paragraph in article.intro %}<p>{{ paragraph }}</p>
+    {% endfor %}
+
+    {% if article.contents %}
+    <nav class="wiki-contents" aria-labelledby="neste-artigo-h">
+      <h2 id="neste-artigo-h">Neste artigo</h2>
+      <ul>
+        {% for section in article.contents %}<li><a href="#{{ section.anchor }}">{{ section.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% endif %}
+
+    {% for section in article.sections %}
+    <h{{ section.level }} id="{{ section.anchor }}">{{ section.title }}</h{{ section.level }}>
+    {% for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>
+    {% endfor %}
+    {% endfor %}
+  </div>
+
+  {# a licenca do texto pede a fonte, os autores e a licenca #}
+  <p class="wiki-source">Texto do artigo “{{ article.title }}” da Wikipédia, a enciclopédia livre, publicado sob a <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">licença CC BY-SA 4.0</a>. <a href="{{ article.history_url }}">Veja quem escreveu este artigo</a>.</p>
+  {% elif error %}
+  <h1 class="page-title">Artigo indisponível</h1>
+  <p>{{ error }}</p>
+  {% else %}
+  <h1 class="page-title">Artigo não encontrado</h1>
+  <p>A Wikipédia em português não tem um artigo chamado “{{ view.kwargs.titulo }}”.</p>
+  {% endif %}
+</main>
+{% endblock %}

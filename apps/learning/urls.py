@@ -12,6 +12,12 @@ urlpatterns = [
         views.AstronomiaImagemView.as_view(),
         name="astronomia_imagem",
     ),
+    path("cursos/wikipedia", views.WikipediaView.as_view(), name="wikipedia"),
+    path(
+        "cursos/wikipedia/<path:titulo>",
+        views.WikipediaArtigoView.as_view(),
+        name="wikipedia_artigo",
+    ),
     path("tutoriais", views.TutoriaisView.as_view(), name="tutoriais"),
     path("comunidade", views.ComunidadeView.as_view(), name="comunidade"),
     path("meuperfil", views.MeuPerfilView.as_view(), name="meuperfil"),

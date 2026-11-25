@@ -43,3 +43,16 @@ class SpaceImageSearchForm(forms.Form):
         if start and end and start > end:
             self.add_error("ano_fim", "O ano final não pode ser antes do inicial.")
         return cleaned_data
+
+
+class WikipediaSearchForm(forms.Form):
+    q = forms.CharField(
+        label="Assunto",
+        max_length=300,  # a pesquisa da Wikipedia recusa textos mais longos
+        help_text="Uma ou mais palavras. Por exemplo: fotossíntese, Machado de Assis, Revolução Francesa.",
+        widget=forms.TextInput(attrs={"type": "search"}),
+        error_messages={
+            "required": "Digite um assunto para pesquisar.",
+            "max_length": "Use no máximo 300 caracteres.",
+        },
+    )

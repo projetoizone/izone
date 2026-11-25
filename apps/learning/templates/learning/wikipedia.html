@@ -1,0 +1,74 @@
+{% extends 'learning/base.html' %}
+{% load static %}
+
+{% block title %}{% if form.errors %}Erro: {% elif results %}{{ form.cleaned_data.q }}, página {{ results.page }} de {{ results.pages }} - {% endif %}Wikipédia{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/wikipedia.css' %}">
+{% endblock %}
+
+{% block content %}
+<main id="conteudo-principal">
+  <h1 class="page-title">WIKIPÉDIA</h1>
+
+  <p class="lede">Pesquise artigos da Wikipédia em português e leia o texto aqui, com os recursos de acessibilidade do iZone.</p>
+
+  <section class="card wiki-search" aria-labelledby="pesquisa-h">
+    <h2 id="pesquisa-h">Pesquisar artigos</h2>
+
+    <form method="get" action="{% url 'learning:wikipedia' %}" role="search" aria-label="Wikipédia" novalidate>
+      <div class="field">
+        <label for="{{ form.q.id_for_label }}">{{ form.q.label }}</label>
+        {{ form.q }}
+        <p class="field-hint" id="{{ form.q.auto_id }}_helptext">{{ form.q.help_text }}</p>
+        {% if form.q.errors %}<p class="field-error" id="{{ form.q.auto_id }}_error">{{ form.q.errors.0 }}</p>{% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Pesquisar</button>
+    </form>
+  </section>
+
+  {% if error %}
+  <section class="card" aria-labelledby="resultados-h">
+    <h2 id="resultados-h" tabindex="-1" autofocus>Pesquisa não concluída</h2>
+    <p>{{ error }}</p>
+  </section>
+  {% elif results %}
+  <section aria-labelledby="resultados-h">
+    <h2 id="resultados-h" tabindex="-1" autofocus>Resultados para “{{ form.cleaned_data.q }}”</h2>
+    {% if results.suggestion %}<p>Você quis dizer <a href="{{ suggestion_url }}">{{ results.suggestion }}</a>?</p>{% endif %}
+
+    {% if results.results %}
+    <p>{{ results.total }} artigo{{ results.total|pluralize }} encontrado{{ results.total|pluralize }}{% if results.pages > 1 %}. Página {{ results.page }} de {{ results.pages }}{% endif %}.</p>
+
+    <ul class="wiki-results">
+      {% for result in results.results %}
+      <li class="card wiki-result">
+        {% if result.thumbnail %}<img src="{{ result.thumbnail }}" alt="" loading="lazy">{% endif %}
+        <div>
+          <h3><a href="{% url 'learning:wikipedia_artigo' result.slug %}?{{ search_query }}">{{ result.title }}</a></h3>
+          {% if result.description %}<p>{{ result.description }}</p>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% elif results.total %}
+    <p>Esta pesquisa tem {{ results.pages }} página{{ results.pages|pluralize }}. <a href="{{ last_url }}">Ir para a última página</a></p>
+    {% else %}
+    <p>Nenhum artigo encontrado. Confira a ortografia ou tente outras palavras.</p>
+    {% endif %}
+
+    {% if prev_url or next_url %}
+    <nav class="wiki-pages" aria-label="Páginas de resultados">
+      <ul>
+        {% if prev_url %}<li><a class="btn btn-outline" href="{{ prev_url }}" rel="prev">Página anterior</a></li>{% endif %}
+        {% if next_url %}<li><a class="btn btn-outline" href="{{ next_url }}" rel="next">Próxima página</a></li>{% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
+    <p class="wiki-source">Artigos da <a href="https://pt.wikipedia.org/">Wikipédia em português</a>, a enciclopédia livre.</p>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
