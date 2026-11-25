@@ -1,0 +1,27 @@
+/* Wikipédia (learning/wikipedia.html e wikipedia_artigo.html) */
+
+.wiki-search { margin-bottom: 2rem; }
+
+.wiki-results { display: grid; gap: 1rem; margin: 1rem 0 1.5rem; }
+.wiki-result { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem; }
+.wiki-result img {
+  flex: 0 0 5rem; width: 5rem; aspect-ratio: 1; object-fit: cover;
+  border-radius: calc(var(--radius) / 2); background: var(--bg-input);
+}
+.wiki-result div { flex: 1 1 16rem; }
+.wiki-result h3 { margin: 0 0 0.25rem; }
+.wiki-result p { margin: 0; color: var(--text-muted); }
+
+.wiki-pages ul { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.wiki-source { color: var(--text-muted); }
+
+.wiki-back { margin: 0 0 1rem; }
+.wiki-figure { margin: 0 0 1.5rem; max-width: 40rem; }
+/* com width e height no HTML a pagina reserva o espaco antes de a imagem chegar;
+   imagens altas encolhem para caber na tela sem distorcer */
+.wiki-figure img { height: auto; max-height: 70vh; object-fit: contain; object-position: left top; }
+.wiki-figure figcaption { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.95rem; }
+.wiki-text p { max-width: 70ch; }
+.wiki-contents { margin: 1.5rem 0; }
+.wiki-contents ul { list-style: disc; padding-left: 1.5rem; }
+.wiki-contents li { margin-bottom: 0.25rem; }

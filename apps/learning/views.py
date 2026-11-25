@@ -14,10 +14,10 @@ from urllib.parse import quote
 
 import requests
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET
-from . import nasa_images
-from .forms import SpaceImageSearchForm
+from . import nasa_images, wikipedia
+from .forms import SpaceImageSearchForm, WikipediaSearchForm
 
 
 class HomeView(TemplateView):
@@ -148,21 +148,50 @@ def search_params(form, page=1):
     return urlencode(params)
 
 
-def page_number(value):
+def page_number(value, last):
     try:
         page = int(value)
     except (TypeError, ValueError):
         return 1
-    return min(max(page, 1), nasa_images.MAX_PAGE)
+    return min(max(page, 1), last)
 
 
-class SpaceImagesMixin:
+class StatusFromContextMixin:
+    """Responde com o status que o contexto pede: 404 se nao achou, 502 se a API falhou."""
+
     def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
+        return self.render_context(self.get_context_data(**kwargs))
+
+    def render_context(self, context):
         return self.render_to_response(context, status=context.get("status", 200))
 
 
-class AstronomiaView(SpaceImagesMixin, TemplateView):
+def page_links(url_name, form, page, pages):
+    """Os links entre as paginas de uma pesquisa, que levam a pesquisa junto."""
+    base = reverse(url_name)
+    return {
+        # cada resultado leva a pesquisa junto, para o link de voltar aos resultados
+        "search_query": search_params(form, page),
+        # depois da ultima pagina, a anterior e a ultima que tem resultados
+        "prev_url": f"{base}?{search_params(form, min(page - 1, pages))}"
+        if page > 1
+        else None,
+        "next_url": f"{base}?{search_params(form, page + 1)}" if page < pages else None,
+        "last_url": f"{base}?{search_params(form, pages)}",
+    }
+
+
+def back_link(request, form_class, url_name, last_page):
+    """O link de voltar: aos resultados, se a pagina veio de uma pesquisa, ou a pesquisa vazia."""
+    url = reverse(url_name)
+    form = form_class(request.GET)
+    if not form.is_valid():
+        return {"back_url": url}
+    page = page_number(request.GET.get("pagina"), last_page)
+    return {"back_url": f"{url}?{search_params(form, page)}", "back_to_results": True}
+
+
+class AstronomiaView(StatusFromContextMixin, TemplateView):
     template_name = "learning/astronomia.html"
 
     def get_context_data(self, **kwargs):
@@ -176,7 +205,7 @@ class AstronomiaView(SpaceImagesMixin, TemplateView):
                 break
             return context
 
-        page = page_number(self.request.GET.get("pagina"))
+        page = page_number(self.request.GET.get("pagina"), nasa_images.MAX_PAGE)
         try:
             results = nasa_images.search(
                 form.cleaned_data["q"],
@@ -188,36 +217,24 @@ class AstronomiaView(SpaceImagesMixin, TemplateView):
             context.update(error=str(error), status=502)
             return context
 
-        base = reverse("learning:astronomia")
-        context.update(
-            results=results,
-            # cada imagem leva a pesquisa junto, para o link de voltar aos resultados
-            search_query=search_params(form, page),
-            # depois da ultima pagina, a anterior e a ultima que tem imagens
-            prev_url=f"{base}?{search_params(form, min(page - 1, results.pages))}"
-            if page > 1
-            else None,
-            next_url=f"{base}?{search_params(form, page + 1)}"
-            if page < results.pages
-            else None,
-            last_url=f"{base}?{search_params(form, results.pages)}",
-        )
+        context["results"] = results
+        context.update(page_links("learning:astronomia", form, page, results.pages))
         return context
 
 
-class AstronomiaImagemView(SpaceImagesMixin, TemplateView):
+class AstronomiaImagemView(StatusFromContextMixin, TemplateView):
     template_name = "learning/astronomia_imagem.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        back_url = reverse("learning:astronomia")
-        form = SpaceImageSearchForm(self.request.GET)
-        if form.is_valid():
-            page = page_number(self.request.GET.get("pagina"))
-            context["back_to_results"] = True
-            back_url += "?" + search_params(form, page)
-        context["back_url"] = back_url
-
+        context.update(
+            back_link(
+                self.request,
+                SpaceImageSearchForm,
+                "learning:astronomia",
+                nasa_images.MAX_PAGE,
+            )
+        )
         try:
             image = nasa_images.get_image(kwargs["nasa_id"])
         except nasa_images.NasaImagesError as error:
@@ -228,4 +245,69 @@ class AstronomiaImagemView(SpaceImagesMixin, TemplateView):
             return context
 
         context["image"] = image
+        return context
+
+
+class WikipediaView(StatusFromContextMixin, TemplateView):
+    template_name = "learning/wikipedia.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = WikipediaSearchForm(self.request.GET or None)
+        context["form"] = form
+        if not form.is_valid():
+            # depois de pesquisar, o foco vai para o campo a corrigir
+            if form.errors:
+                form.fields["q"].widget.attrs["autofocus"] = True
+            return context
+
+        page = page_number(self.request.GET.get("pagina"), wikipedia.MAX_PAGE)
+        try:
+            results = wikipedia.search(form.cleaned_data["q"], page=page)
+        except wikipedia.WikipediaError as error:
+            context.update(error=str(error), status=502)
+            return context
+
+        context["results"] = results
+        context["suggestion_url"] = (
+            f"{reverse('learning:wikipedia')}?{urlencode({'q': results.suggestion})}"
+        )
+        context.update(page_links("learning:wikipedia", form, page, results.pages))
+        return context
+
+
+class WikipediaArtigoView(StatusFromContextMixin, TemplateView):
+    template_name = "learning/wikipedia_artigo.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        article = context.get("article")
+        # outros nomes do artigo (redirecionamentos, minusculas, espacos) levam ao endereco dele
+        if article and article.slug != kwargs["titulo"]:
+            url = reverse("learning:wikipedia_artigo", args=[article.slug])
+            if request.GET:
+                url += "?" + request.GET.urlencode()
+            return redirect(url)
+        return self.render_context(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            back_link(
+                self.request,
+                WikipediaSearchForm,
+                "learning:wikipedia",
+                wikipedia.MAX_PAGE,
+            )
+        )
+        try:
+            article = wikipedia.get_article(kwargs["titulo"].replace("_", " "))
+        except wikipedia.WikipediaError as error:
+            context.update(error=str(error), status=502)
+            return context
+        if article is None:
+            context["status"] = 404
+            return context
+
+        context["article"] = article
         return context
