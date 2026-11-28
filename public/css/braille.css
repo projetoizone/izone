@@ -1,29 +1,38 @@
+/* Jogo Soletrando. As cores vêm dos temas de style.css e os tamanhos em rem crescem com A+ */
+
+.hear-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.hear-row .field-hint { margin: 0; font-weight: 700; }
+.game-form { margin-top: 1.25rem; }
+.game-status { font-weight: 700; }
 
 .braille-display {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 1.125rem;
   align-items: center;
-  padding: 20px 0;
+  min-height: 7rem; /* a área não pula quando a primeira letra aparece */
+  padding: 1.25rem 0;
 }
 
 .braille-cell {
   display: grid;
-  grid-template-columns: repeat(2, 24px);
-  grid-template-rows: repeat(3, 24px);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1.5rem);
+  grid-template-rows: repeat(3, 1.5rem);
+  grid-auto-flow: column; /* pontos 1, 2 e 3 descem pela coluna da esquerda; 4, 5 e 6 pela da direita */
+  gap: 0.5rem;
 }
 
+/* ponto vazio: só o contorno; ponto preenchido: a cor do texto. Os dois se distinguem
+   pela forma, e não só pela cor, e têm contraste com o fundo em todos os temas (WCAG 1.4.11) */
 .braille-dot {
-  width: 24px;
-  height: 24px;
   border-radius: 50%;
-  background: #555b68;
-  border: 2px solid #aeb4c0;
+  background: transparent;
+  border: 2px solid var(--text-muted);
 }
 
 .braille-dot.active {
-  background: #ffe66d;
-  border-color: #ffe66d;
-  box-shadow: 0 0 0 2px #101218;
+  background: var(--text);
+  border-color: var(--text);
 }
+
+.word-space { width: 1.5rem; }

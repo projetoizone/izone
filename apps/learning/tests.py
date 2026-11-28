@@ -446,6 +446,15 @@ class ReadAloudHighlightTests(TestCase):
         )
 
 
+class MainMenuTests(TestCase):
+    def test_every_page_shows_the_main_menu(self):
+        for name in PAGES:
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+
+                self.assertContains(response, '<nav class="main-nav" aria-label="Principal">')
+
+
 class ThemeSelectorTests(TestCase):
     option = re.compile(
         r'<option value="([^"]+)" data-set-theme="([^"]+)" '
@@ -461,7 +470,7 @@ class ThemeSelectorTests(TestCase):
             with self.subTest(page=name):
                 response = self.client.get(reverse(name))
 
-                self.assertContains(response, '<label for="a11y-tema">Tema</label>')
+                self.assertContains(response, '<label class="sr-only" for="a11y-tema">Tema</label>')
                 self.assertContains(
                     response, '<select id="a11y-tema" data-action="theme">'
                 )

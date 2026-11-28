@@ -88,10 +88,17 @@
       </article>
 
       <article class="card">
-        <h3>Dicionário em Inglês</h3>
-        
+        <h2>Dicionário de Inglês</h2>
+
         <p>Aumente seu repertório linguístico do idioma inglês.</p>
-        <a class="btn btn-primary btn-block" href="{% url 'learning:dictionary' %}">Acessar curso</a>
+        <a class="btn btn-primary btn-block" href="{% url 'learning:dictionary' %}">Acessar curso<span class="sr-only">: Dicionário de Inglês</span></a>
+      </article>
+
+      <article class="card">
+        <h2>Soletrando</h2>
+
+        <p>Ouça palavras em português, escreva como elas se soletram e veja cada letra em Braille.</p>
+        <a class="btn btn-primary btn-block" href="{% url 'spelling:game' %}">Acessar curso<span class="sr-only">: Soletrando</span></a>
       </article>
     </div>
   

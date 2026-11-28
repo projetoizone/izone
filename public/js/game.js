@@ -94,126 +94,63 @@ function renderBraille(word) {
 }
 
 
-const API_BASE = "https://api.dicionario-aberto.net";
+// a palavra vem do servidor, que consulta o Dicionário Aberto (apps/spelling/dicionario_aberto.py)
+const CHALLENGE_URL = document.querySelector("#answer-form").dataset.challengeUrl;
 
-async function fetchJSON(url) {
-  const response = await fetch(url);
+const LOAD_ERROR = "Não foi possível carregar uma palavra. Tente novamente.";
 
-  if (!response.ok) {
-    throw new Error(`Erro na API: HTTP ${response.status}`);
-  }
-
-  return response.json();
-}
-
-async function getRandomWord() {
-  const data = await fetchJSON(`${API_BASE}/random`);
-
-  // A API documenta a palavra no campo "word".
-  if (!data || typeof data.word !== "string") {
-    throw new Error("A API não retornou uma palavra válida.");
-  }
-
-  return data.word.trim();
-}
-
-async function getWordDefinition(word) {
-  const entries = await fetchJSON(
-    `${API_BASE}/word/${encodeURIComponent(word)}`
-  );
-
-  if (!Array.isArray(entries) || entries.length === 0) {
-    return "";
-  }
-
-  const definitions = [];
-
-  for (const entry of entries) {
-    if (typeof entry.xml !== "string") continue;
-
-    const xml = new DOMParser().parseFromString(
-      entry.xml,
-      "application/xml"
-    );
-
-    if (xml.querySelector("parsererror")) continue;
-
-    const senses = [...xml.querySelectorAll("def")]
-      .map(node => node.textContent.trim())
-      .filter(Boolean);
-
-    definitions.push(...senses);
-  }
-
-  return [...new Set(definitions)].join(" ") ||
-    "Definição indisponível.";
-}
-
+// a mensagem do erro é escrita para ser mostrada na página
 async function getNextChallenge() {
-  // Tentamos encontrar uma palavra compatível com
-  // a tabela Braille simplificada deste protótipo.
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const word = await getRandomWord();
-
-    // Por enquanto, aceitamos apenas letras sem acentos.
-    // A tabela Braille portuguesa completa virá depois.
-    if (!/^[a-z]{3,12}$/i.test(word)) {
-      continue;
-    }
-
-    const definition = await getWordDefinition(word);
-
-    return {
-      word,
-      definition,
-      example: ""
-    };
+  let response;
+  try {
+    response = await fetch(CHALLENGE_URL);
+  } catch {
+    throw new Error(LOAD_ERROR); // sem conexão com o servidor
   }
 
-  throw new Error(
-    "Não foi encontrada uma palavra compatível. Tente novamente."
-  );
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || typeof data.word !== "string") {
+    throw new Error(data.error || LOAD_ERROR);
+  }
+
+  return data;
 }
 
-
+// fala com a voz da barra de acessibilidade (accessibility.js): mesma velocidade e idioma
+// da leitura do site, sem cortar o "Ouvir página"
+// devolve a fala, ou null quando o navegador não tem voz
 function speak(text) {
-  if (!("speechSynthesis" in window)) {
-    feedback.textContent =
-      "A síntese de voz não é suportada neste navegador.";
+  return (window.izone && window.izone.speak && window.izone.speak(text)) || null;
+}
+
+// fala a palavra da rodada mostrando na tela que ela está tocando: quem está com o som
+// baixo ou desligado vê que o clique funcionou. O aviso é só visual (aria-hidden), para
+// o leitor de tela não falar por cima da palavra; os erros vão para o #feedback, que é lido
+function speakWord(word) {
+  const utterance = speak(word);
+  if (!utterance) {
+    feedback.textContent = NO_SPEECH;
     return false;
   }
 
-  const synth = window.speechSynthesis;
-  const voices = synth.getVoices();
+  // só apaga o aviso se nenhuma fala mais nova o tiver mostrado de novo
+  currentUtterance = utterance;
+  hearStatus.textContent = "Tocando a palavra…";
+  const done = () => {
+    if (currentUtterance === utterance) hearStatus.textContent = "";
+  };
 
-  // Procura primeiro uma voz em português brasileiro.
-  const portugueseVoices = voices.filter(
-    voice => voice.lang.toLowerCase() === "pt-br"
-  );
-
-  // Tenta priorizar vozes que possam ter melhor qualidade.
-  const preferredVoice = portugueseVoices.find(
-    voice => /natural|neural|online/i.test(voice.name)
-  );
-
-  const selectedVoice =
-    preferredVoice ||
-    portugueseVoices.find(voice => voice.default) ||
-    portugueseVoices[0] ||
-    voices.find(voice => voice.lang.toLowerCase().startsWith("pt"));
-
-  synth.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "pt-BR";
-  utterance.rate = 0.95;
-  utterance.pitch = 1.0;
-
-  if (selectedVoice) {
-    utterance.voice = selectedVoice;
-  }
-
-  synth.speak(utterance);
+  utterance.addEventListener("end", done);
+  utterance.addEventListener("error", event => {
+    done();
+    // "interrupted" e "canceled": outra fala tomou o lugar desta, não é um erro
+    if (event.error === "interrupted" || event.error === "canceled") return;
+    // o Chrome não deixa falar antes de a pessoa interagir com a página
+    feedback.textContent = event.error === "not-allowed"
+      ? "Selecione “Ouvir palavra novamente” para ouvir a palavra."
+      : "Não foi possível tocar a palavra. Verifique o volume e tente de novo.";
+  });
   return true;
 }
 
@@ -280,66 +217,29 @@ const nextButton = document.querySelector("#next-round");
 const learning = document.querySelector("#learning");
 
 const hearButton = document.querySelector("#hear-word");
+const hearStatus = document.querySelector("#hear-status");
+let currentUtterance = null;
 const definitionDisplay = document.querySelector("#definition");
 const exampleDisplay = document.querySelector("#example");
 
 
-const voiceSelect = document.querySelector("#voice-select");
-const testVoiceButton = document.querySelector("#test-voice");
+// sem voz no navegador não dá para ouvir a palavra; o botão fica desativado, como o "Ouvir página"
+const canSpeak = "speechSynthesis" in window;
+const NO_SPEECH = "A leitura em voz alta não é suportada neste navegador, então não é possível ouvir a palavra.";
 
-function populateVoices() {
-  const voices = speechSynthesis.getVoices()
-    .filter(voice => voice.lang.toLowerCase() === "pt-br");
-
-  voiceSelect.replaceChildren();
-
-  voices.forEach(voice => {
-    const option = document.createElement("option");
-    option.value = voice.voiceURI;
-    option.textContent = voice.name;
-    voiceSelect.appendChild(option);
-  });
-}
-
-populateVoices();
-speechSynthesis.addEventListener("voiceschanged", populateVoices);
-
-function speak(text) {
-  if (!("speechSynthesis" in window)) return false;
-
-  const voice = speechSynthesis.getVoices()
-    .find(v => v.voiceURI === voiceSelect.value);
-
-  speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "pt-BR";
-  utterance.rate = 0.95;
-  utterance.pitch = 1;
-
-  if (voice) utterance.voice = voice;
-
-  speechSynthesis.speak(utterance);
-  return true;
-}
-
-testVoiceButton.addEventListener("click", () => {
-  speak("Olá! Esta é a voz que será utilizada no jogo de soletração.");
-});
+if (!canSpeak) hearButton.title = "Leitura em voz alta não é suportada neste navegador";
 
 
 function showWord(challenge) {
   answerInput.value = "";
   renderBraille("");
 
-  feedback.textContent =
-    "Ouça a palavra e digite sua resposta.";
-
   nextButton.hidden = true;
   learning.hidden = true;
   answerInput.disabled = false;
 
-  speak(challenge.word);
+  feedback.textContent = "Ouça a palavra e digite sua resposta.";
+  speakWord(challenge.word);
 }
 
 // Move o foco só quando ele se perdeu (o elemento focado sumiu ou foi
@@ -373,14 +273,13 @@ async function loadRound(startedByUser = false) {
   } catch (error) {
     console.error(error);
 
-    feedback.textContent =
-      "Não foi possível carregar uma palavra. Tente novamente.";
+    feedback.textContent = error.message;
 
     nextButton.textContent = "Tentar novamente";
     nextButton.hidden = false;
     if (startedByUser) focusIfLost(nextButton);
   } finally {
-    hearButton.disabled = false;
+    hearButton.disabled = !canSpeak;
   }
 }
 
@@ -391,7 +290,7 @@ answerInput.addEventListener("input", () => {
 
 hearButton.addEventListener("click", () => {
   if (game.currentWord) {
-    speak(game.currentWord.word);
+    speakWord(game.currentWord.word);
   }
 });
 

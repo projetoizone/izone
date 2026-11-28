@@ -10,6 +10,35 @@ function announce(msg) {
   setTimeout(() => { announcer.textContent = msg; }, 50);
 }
 
+// velocidades da leitura em voz alta, de 0,5x a 2x; a escolhida fica salva neste navegador
+const RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const tts = {
+  pauseReading: () => {}, // trocada pela leitura da pagina, quando o navegador tem voz
+  current: null, // a fala de izone.speak em andamento
+};
+
+// fala curta pedida por uma pagina, como a palavra do jogo Soletrando, no idioma da pagina e
+// na velocidade da barra de acessibilidade. Se a pagina estiver sendo lida em voz alta, a
+// leitura e pausada, e nao cortada, para que o botao "Continuar leitura" siga de onde parou.
+// Devolve a fala (SpeechSynthesisUtterance), para a pagina acompanhar o inicio, o fim e os erros,
+// ou null quando o navegador nao tem voz
+window.izone = window.izone || {};
+window.izone.speak = (text) => {
+  if (!("speechSynthesis" in window) || !text) return null;
+  tts.pauseReading();
+  speechSynthesis.cancel();
+  const savedRate = parseFloat(localStorage.getItem("izone-tts-rate"));
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = root.lang || "pt-BR";
+  utterance.rate = RATES.includes(savedRate) ? savedRate : 1;
+  utterance.onend = utterance.onerror = () => {
+    if (tts.current === utterance) tts.current = null;
+  };
+  tts.current = utterance; // manter a referencia evita que o Chrome descarte a fala antes do "end"
+  speechSynthesis.speak(utterance);
+  return utterance;
+};
+
 function getStepIndex() {
   const saved = parseInt(localStorage.getItem("izone-fs-step"), 10);
   return isNaN(saved) ? 0 : Math.min(Math.max(saved, 0), STEPS.length - 1);
@@ -169,8 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ttsBtn.removeAttribute("aria-pressed"); // o rotulo muda com o estado, entao nao e um botao de alternancia
     ttsBtn.after(stopBtn);
 
-    // velocidade da leitura, de 0,5x a 2x; fica salva neste navegador
-    const RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    // velocidade da leitura (RATES, no topo do arquivo)
     const formatRate = (value) => String(value).replace(".", ",") + "x";
     const savedRate = parseFloat(localStorage.getItem("izone-tts-rate"));
     let rate = RATES.includes(savedRate) ? savedRate : 1;
@@ -178,10 +206,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const speedLabel = document.createElement("label");
     speedLabel.className = "a11y-field";
     const speedText = document.createElement("span");
+    // o texto fica escondido na tela, mas o leitor de tela fala o nome do campo ao tocar nele
+    speedText.className = "sr-only";
     speedText.textContent = "Velocidade";
     const speedSelect = document.createElement("select");
     speedSelect.dataset.action = "tts-rate";
-    speedSelect.setAttribute("aria-label", "Velocidade da leitura"); // contem o texto visivel (WCAG 2.5.3)
+    speedSelect.setAttribute("aria-label", "Velocidade da leitura");
     for (const value of RATES) {
       const option = document.createElement("option");
       option.value = String(value);
@@ -190,6 +220,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     speedLabel.append(speedText, speedSelect);
     stopBtn.after(speedLabel);
+
+    // botao liga/desliga: fala o nome do item que recebe o foco (Tab ou toque).
+    // Fica desligado por padrao para nao repetir o que o leitor de tela do sistema ja fala
+    const focusBtn = document.createElement("button");
+    focusBtn.type = "button";
+    focusBtn.className = "a11y-btn";
+    focusBtn.dataset.action = "toggle-focus-speech";
+    focusBtn.textContent = "Falar ao navegar";
+    let speakFocus = localStorage.getItem("izone-tts-focus") === "on";
+    const showFocusToggle = () => {
+      focusBtn.setAttribute("aria-pressed", String(speakFocus));
+      focusBtn.classList.toggle("is-active", speakFocus);
+    };
+    showFocusToggle();
+    speedLabel.after(focusBtn);
 
     // o perfil tem um controle deslizante para a mesma velocidade
     const profileSlider = document.getElementById("pref-velocidade");
@@ -205,31 +250,28 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     showRate();
 
-    // o nome acessivel e o proprio texto visivel (WCAG 2.5.3); o icone fica oculto do leitor de tela
-    const setLabel = (btn, icon, text, ariaLabel) => {
-      const key = icon + text + (ariaLabel || "");
+    // o nome acessivel e o proprio texto visivel (WCAG 2.5.3); os botoes nao mostram icone
+    const setLabel = (btn, text, ariaLabel) => {
+      const key = text + (ariaLabel || "");
       if (btn.dataset.label === key) return;
       btn.dataset.label = key;
-      const iconEl = document.createElement("span");
-      iconEl.setAttribute("aria-hidden", "true");
-      iconEl.textContent = icon;
-      btn.replaceChildren(iconEl, " " + text);
+      btn.replaceChildren(text);
       if (ariaLabel) btn.setAttribute("aria-label", ariaLabel);
       else btn.removeAttribute("aria-label");
     };
 
     const render = () => {
-      if (state === "playing") setLabel(ttsBtn, "⏸", "Pausar leitura");
-      else if (state === "paused") setLabel(ttsBtn, "▶", "Continuar leitura");
-      else if (selectedText) setLabel(ttsBtn, "🔊", "Ouvir trecho", "Ouvir trecho selecionado");
-      else setLabel(ttsBtn, "🔊", "Ouvir página");
+      if (state === "playing") setLabel(ttsBtn, "Pausar leitura");
+      else if (state === "paused") setLabel(ttsBtn, "Continuar leitura");
+      else if (selectedText) setLabel(ttsBtn, "Ouvir trecho", "Ouvir trecho selecionado");
+      else setLabel(ttsBtn, "Ouvir página");
       ttsBtn.classList.toggle("is-active", state !== "idle");
       // o botao parar some quando a leitura termina; o foco volta para o botao principal
       if (state === "idle" && document.activeElement === stopBtn) ttsBtn.focus();
       stopBtn.hidden = state === "idle";
     };
 
-    setLabel(stopBtn, "⏹", "Parar leitura");
+    setLabel(stopBtn, "Parar leitura");
     render();
 
     // texto a ler, com o lugar de cada caractere na pagina, para destacar o que esta sendo
@@ -448,6 +490,9 @@ document.addEventListener("DOMContentLoaded", () => {
       render();
       announce("Leitura pausada");
     };
+    tts.pauseReading = () => {
+      if (state === "playing") pause();
+    };
 
     const resume = () => {
       state = "playing";
@@ -493,6 +538,102 @@ document.addEventListener("DOMContentLoaded", () => {
       else start();
     });
     stopBtn.addEventListener("click", () => stop("Leitura interrompida"));
+
+    // ---- falar ao navegar ----
+    const clean = (text) => (text || "").replace(/\s+/g, " ").trim();
+    const textOf = (el) => {
+      if (!el) return "";
+      const copy = el.cloneNode(true);
+      copy.querySelectorAll('[aria-hidden="true"], select, script, style').forEach((n) => n.remove());
+      return clean(copy.textContent);
+    };
+
+    // nome do campo, na mesma ordem que o leitor de tela usa
+    const nameOf = (el) => {
+      const labelledby = el.getAttribute("aria-labelledby");
+      if (labelledby) {
+        const text = labelledby.split(/\s+/).map((id) => textOf(document.getElementById(id))).join(" ");
+        if (clean(text)) return clean(text);
+      }
+      if (el.getAttribute("aria-label")) return clean(el.getAttribute("aria-label"));
+      if (el.labels && el.labels.length) return textOf(el.labels[0]);
+      if (el.matches("img") && el.alt) return clean(el.alt);
+      if (!el.matches("input, select, textarea")) {
+        const text = textOf(el);
+        if (text) return text;
+      }
+      return clean(el.getAttribute("placeholder") || el.getAttribute("title") || "");
+    };
+
+    const describe = (el) => {
+      const parts = [nameOf(el)];
+      const tag = el.tagName.toLowerCase();
+      const type = (el.getAttribute("type") || "").toLowerCase();
+      if (tag === "select") {
+        parts.push("lista", el.selectedOptions[0] ? clean(el.selectedOptions[0].textContent) : "");
+      } else if (tag === "textarea") {
+        parts.push("campo de texto", el.value);
+      } else if (tag === "input" && (type === "checkbox" || type === "radio")) {
+        parts.push(type === "checkbox" ? "caixa de seleção" : "opção", el.checked ? "marcada" : "desmarcada");
+      } else if (tag === "input" && type === "range") {
+        parts.push("controle deslizante", el.getAttribute("aria-valuetext") || el.value);
+      } else if (tag === "input" && type === "password") {
+        parts.push("campo de senha");
+      } else if (tag === "input" && type !== "submit" && type !== "button") {
+        parts.push(type === "search" ? "campo de busca" : "campo de texto", el.value);
+      } else if (tag === "a") {
+        parts.push("link");
+      } else if (tag === "button" || el.getAttribute("role") === "button" || type === "submit" || type === "button") {
+        parts.push("botão");
+        const pressed = el.getAttribute("aria-pressed");
+        if (pressed === "true") parts.push("ligado");
+        else if (pressed === "false") parts.push("desligado");
+      }
+      if (el.getAttribute("aria-current") === "page") parts.push("página atual");
+      if (el.disabled) parts.push("indisponível");
+      return parts.map(clean).filter(Boolean).join(", ");
+    };
+
+    // fala curta, separada da leitura da pagina: nunca interrompe uma leitura em andamento
+    const say = (text) => {
+      // tambem nao corta a fala de izone.speak: no Safari, tocar em "Ouvir palavra novamente"
+      // falaria o nome do botao por cima da palavra
+      if (!text || state === "playing" || tts.current) return;
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = pageLang;
+      utterance.rate = rate;
+      current = utterance;
+      speechSynthesis.speak(utterance);
+    };
+
+    focusBtn.addEventListener("click", () => {
+      speakFocus = !speakFocus;
+      localStorage.setItem("izone-tts-focus", speakFocus ? "on" : "off");
+      showFocusToggle();
+      // avisa a mudanca mesmo ao desligar, para quem depende do som saber que deu certo
+      say(speakFocus ? "Falar ao navegar ligado" : "Falar ao navegar desligado");
+      announce(speakFocus ? "Falar ao navegar ligado" : "Falar ao navegar desligado");
+    });
+
+    document.addEventListener("focusin", (event) => {
+      if (!speakFocus) return;
+      say(describe(event.target));
+    });
+    // no Safari (Mac e iPhone) tocar num botao ou link nao da foco a ele; nesse caso
+    // o clique fala o item. Quando o foco chegou, o focusin acima ja falou
+    document.addEventListener("click", (event) => {
+      if (!speakFocus) return;
+      const el = event.target.closest("a[href], button, [role='button'], input, select, textarea");
+      if (!el || el === focusBtn || el === ttsBtn || el === stopBtn || el === document.activeElement) return;
+      say(describe(el));
+    });
+    // ao trocar a opcao de uma lista, fala a opcao escolhida
+    document.addEventListener("change", (event) => {
+      if (!speakFocus || !event.target.matches("select")) return;
+      const option = event.target.selectedOptions[0];
+      if (option) say(clean(option.textContent));
+    });
     speedSelect.addEventListener("change", () => setRate(speedSelect.value));
     if (profileSlider) profileSlider.addEventListener("input", () => setRate(profileSlider.value));
   } else if (ttsBtn) {
