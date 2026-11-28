@@ -123,16 +123,6 @@ ul { list-style: none; margin: 0; padding: 0; }
 h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
 h2 { font-size: 1.375rem; font-weight: 700; margin: 1.75rem 0 0.75rem; }
 h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
-/* o jogo ja usava h1 e h2; mantem a aparencia que esses titulos tinham */
-.game h1 { font-weight: 700; letter-spacing: normal; margin: 0.67em 0; }
-.game h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 1rem; }
-/* jogo: cada rotulo fica acima do seu campo, que segue o estilo dos outros campos */
-.game label { display: block; margin: 1rem 0 0.35rem; font-weight: 700; }
-.game input[type="text"], .game select {
-  max-width: 100%; min-height: 44px; padding: 0 0.9rem; /* WCAG 2.5.8 */
-  background: var(--bg-input); color: var(--text);
-  border: 2px solid var(--border); border-radius: 8px; font: inherit;
-}
 .lede { font-size: 1.125rem; font-weight: 600; max-width: 62ch; margin: 0 0 1.75rem; }
 
 /* Utilitários */
@@ -286,6 +276,7 @@ h3, h4 { font-size: 1.125rem; font-weight: 700; margin: 0 0 0.5rem; }
 .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
 .btn-outline:hover { background: var(--bg-elevated); }
 .btn-block { width: 100%; }
+.btn[hidden] { display: none; } /* o display: inline-flex do .btn venceria o atributo hidden */
 
 /* Formulários */
 .field { margin-bottom: 1rem; text-align: left; }

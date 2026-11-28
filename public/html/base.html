@@ -62,7 +62,7 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
     {% block css %}{% endblock %}
 </head>
 <body>
@@ -76,7 +76,7 @@
             <button type="button" class="a11y-btn" data-action="font-increase" aria-label="A+ Aumentar tamanho da fonte">A+</button>
             <button type="button" class="a11y-btn" data-action="font-decrease" aria-label="A- Diminuir tamanho da fonte">A-</button>
             <span class="a11y-field">
-                <label for="a11y-tema">Tema</label>
+                <label class="sr-only" for="a11y-tema">Tema</label>
                 <select id="a11y-tema" data-action="theme">
                     <option value="dark" data-set-theme="dark" data-set-contrast="normal">Escuro (padrão)</option>
                     <option value="light" data-set-theme="light" data-set-contrast="normal">Claro</option>
@@ -86,7 +86,7 @@
                     <option value="sepia" data-set-theme="sepia" data-set-contrast="normal">Sépia</option>
                 </select>
             </span>
-            <button type="button" class="a11y-btn" data-action="toggle-tts"><span aria-hidden="true">🔊</span> Ouvir página</button>
+            <button type="button" class="a11y-btn" data-action="toggle-tts">Ouvir página</button>
         </div>
 
         <form class="search-field" role="search" action="busca.html" method="get">
@@ -118,7 +118,7 @@
       <p>© 2026 iZone. Todos os direitos reservados.</p>
     </footer>
 
-    <script src="{% static 'js/accessibility.js' %}"></script>
+    <script src="{% static 'js/accessibility.js' %}?v=4"></script>
     <script src="{% static 'js/demo-interactions.js' %}"></script>
     {% block postjs %}{% endblock %}
 </body>
