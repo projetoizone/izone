@@ -20,5 +20,11 @@ db.*
 # MacOS
 .DS_Store
 
+# Environment
+.env
+
+# Static
+staticfiles/
+
 # Others
 __ignore__
